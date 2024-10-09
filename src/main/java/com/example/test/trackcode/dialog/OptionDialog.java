@@ -1,12 +1,15 @@
 package com.example.test.trackcode.dialog;
 
 
+import com.example.test.trackcode.jgit.gitMethod;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 // TODO 将这个弹窗的关闭按钮去掉
 public class OptionDialog extends DialogWrapper {
@@ -37,6 +40,12 @@ public class OptionDialog extends DialogWrapper {
 
         btnInit.addActionListener(e -> {
             // TODO 用本地项目初始化远程仓库、成功消息提示、Exception捕捉消息提示
+            System.out.println("aaaaa");
+            try{
+                gitMethod.createRepo();
+            }catch (GitAPIException | IOException E) {
+                System.out.println("error");
+            }
 
             this.close(OK_EXIT_CODE);
         });

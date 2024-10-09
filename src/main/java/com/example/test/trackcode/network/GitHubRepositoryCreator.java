@@ -7,6 +7,9 @@ import java.net.URL;
 /* 我的测试令牌 */
 // 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
 
+/*LMZ令牌*/
+//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
+
 public class GitHubRepositoryCreator {
 
     public static void createGitHubRepo(String repoName, String description, boolean isPrivate, String token) throws Exception {

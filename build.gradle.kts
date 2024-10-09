@@ -13,8 +13,20 @@ repositories {
 }
 
 dependencies {
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r")
     implementation ("io.github.java-diff-utils:java-diff-utils:4.0")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r") {
+        exclude(group = "org.slf4j", module = "slf4j-api")
+    }
+
+    // 手动指定兼容的 SLF4J 版本
+
+    compileOnly("org.slf4j:slf4j-api:1.7.30")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("org.slf4j:slf4j-api:1.7.30") // 选择唯一版本
+    }
 }
 
 
