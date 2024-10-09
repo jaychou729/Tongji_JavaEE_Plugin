@@ -1,5 +1,7 @@
 package com.example.test.trackcode.dialog;
 
+import com.example.test.trackcode.message.MessageOutput;
+import com.example.test.trackcode.storage.PersistentStorage;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,8 +93,24 @@ public class GitBondDialog extends DialogWrapper {
         });
 
         btnBondRepo.addActionListener(e -> {
-            this.close(OK_EXIT_CODE);
-            // TODO 保存信息、弹出选择克隆还是初始化的弹窗
+            if(tfUserName.getText()==null||tfPassWord.getText()==null||tfToken.getText()==null||tfURL.getText()==null){
+                MessageOutput.TakeMessage("输入不能为空");
+            }
+            else{
+                if("".equals(tfUserName.getText()) || "".equals(tfPassWord.getText()) || "".equals(tfToken.getText())||"".equals(tfURL.getText())){
+                    MessageOutput.TakeMessage("输入不能为空");
+                }
+                else{
+                    PersistentStorage.getInstance().setUsername(tfUserName.getText());
+                    PersistentStorage.getInstance().setPassword(tfPassWord.getText());
+                    PersistentStorage.getInstance().setToken(tfToken.getText());
+                    PersistentStorage.getInstance().setUrl(tfURL.getText());
+                    this.close(OK_EXIT_CODE);
+                    OptionDialog dialog = new OptionDialog();
+                    dialog.show();
+                }
+            }
+
         });
 
         panel.add(btnNoRepo);

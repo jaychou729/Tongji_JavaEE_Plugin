@@ -16,7 +16,10 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
 
     // 定义状态类，用于保存你想要持久化的数据
     public static class State {
-        public String githubURL = "";  // github url
+        public String username;
+        public String password;
+        public String token;
+        public String url;  // github url
     }
 
     private State myState = new State();
@@ -39,14 +42,45 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
         return ServiceManager.getService(PersistentStorage.class);
     }
 
-    // 设置字符串值并保存
-    public void setGithubURL(String value) {
-        myState.githubURL = value;
+
+    /* 数据修改与调用 */
+    public void setUsername(String value) {
+        myState.username = value;
     }
 
-    // 获取字符串值
-    public String getGithubURL() {
-        return myState.githubURL;
+    public String getUsername() {
+        return myState.username;
+    }
+
+    public void setPassword(String value) {
+        myState.password = value;
+    }
+
+    public String getPassword() {
+        return myState.password;
+    }
+
+    public void setToken(String value) {
+        myState.token = value;
+    }
+
+    public String getToken() {
+        return myState.token;
+    }
+
+    public void setUrl(String value) {
+        myState.url = value;
+    }
+
+    public String getUrl() {
+        return myState.url;
     }
 }
 
+/* 数据调用方法 */
+/*
+ * PersistentStorage.getInstance().getUsername()    // 获取用户名
+ * PersistentStorage.getInstance().getPassword()    // 获取密码
+ * PersistentStorage.getInstance().getToken()       // 获取仓库令牌
+ * PersistentStorage.getInstance().getUrl()         // 获取仓库地址
+ */

@@ -17,7 +17,14 @@ public class OptionDialog extends DialogWrapper {
 
     @Nullable
     @Override
-    protected JComponent createCenterPanel() {
+    protected JComponent createCenterPanel(){
+        JPanel panel = new JPanel();
+        return panel;
+    }
+
+    @Nullable
+    @Override
+    protected JComponent createSouthPanel() {
         JPanel panel = new JPanel(new FlowLayout());
         JButton btnClone = new JButton("克隆到本地项目");
         JButton btnInit = new JButton("初始化远程仓库");
