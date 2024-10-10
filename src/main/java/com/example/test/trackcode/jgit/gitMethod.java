@@ -28,8 +28,7 @@ public class gitMethod {
             String url = PersistentStorage.getInstance().getUrl();
             logger.info("Git repository URL: " + url);
 
-            Git git = null;
-            git = Git.init().setDirectory(new File(projectBasePath)).call();
+            Git git = Git.init().setDirectory(new File(projectBasePath)).call();
             logger.info("Initialized local Git repository");
 
             if (!git.getRepository().getBranch().equals("main")) {
