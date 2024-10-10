@@ -2,6 +2,7 @@ package com.example.test.trackcode.dialog;
 
 
 import com.example.test.trackcode.jgit.gitMethod;
+import com.example.test.trackcode.message.MessageOutput;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
@@ -39,15 +40,14 @@ public class OptionDialog extends DialogWrapper {
         });
 
         btnInit.addActionListener(e -> {
-            // TODO 用本地项目初始化远程仓库、成功消息提示、Exception捕捉消息提示
-            System.out.println("aaaaa");
             try{
-                gitMethod.createRepo();
-            }catch (GitAPIException | IOException E) {
+                gitMethod.InitRepo();
+                MessageOutput.TakeMessage("推送远程仓库成功");
+                this.close(OK_EXIT_CODE);
+            }catch (GitAPIException | IOException ex) {
                 System.out.println("error");
+                MessageOutput.TakeMessage("推送远程仓库失败,稍后重试");
             }
-
-            this.close(OK_EXIT_CODE);
         });
 
         panel.add(btnClone);

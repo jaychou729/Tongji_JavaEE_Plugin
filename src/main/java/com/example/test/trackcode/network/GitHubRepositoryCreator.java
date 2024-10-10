@@ -8,7 +8,7 @@ import java.net.URL;
 // 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
 
 /*LMZ令牌*/
-//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
+// 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
 
 public class GitHubRepositoryCreator {
 

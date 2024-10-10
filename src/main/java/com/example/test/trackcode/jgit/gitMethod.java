@@ -1,5 +1,6 @@
 package com.example.test.trackcode.jgit;
 
+import com.example.test.trackcode.message.MessageOutput;
 import com.example.test.trackcode.storage.PersistentStorage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.ProjectManager;
@@ -16,7 +17,7 @@ public class gitMethod {
     // 引入 IntelliJ 的日志系统
     private static final Logger logger = Logger.getInstance(gitMethod.class);
 
-    public static void createRepo() throws GitAPIException, IOException {
+    public static void InitRepo() throws GitAPIException, IOException {
         try {
             String projectBasePath = ProjectManager.getInstance().getOpenProjects()[0].getBasePath();
             logger.info("Project base path: " + projectBasePath);
@@ -27,7 +28,8 @@ public class gitMethod {
             String url = PersistentStorage.getInstance().getUrl();
             logger.info("Git repository URL: " + url);
 
-            Git git = Git.init().setDirectory(new File(projectBasePath)).call();
+            Git git = null;
+            git = Git.init().setDirectory(new File(projectBasePath)).call();
             logger.info("Initialized local Git repository");
 
             if (!git.getRepository().getBranch().equals("main")) {
