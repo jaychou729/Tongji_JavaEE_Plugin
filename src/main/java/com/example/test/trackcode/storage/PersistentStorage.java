@@ -4,17 +4,22 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-// 使用 @State 注解指定存储的位置
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+// 使用 @State 注解标注持久化组件
 @State(
-        name = "PersistentStorage", // 存储状态的唯一名称
-        storages = {@Storage("PersistentStorage.xml")}  // 保存的位置
+        name = "PersistentStorage",
+        storages = {@Storage("PersistentStorage.xml")}  // 使用默认配置，稍后会手动管理路径
 )
 public class PersistentStorage implements PersistentStateComponent<PersistentStorage.State> {
 
-    // 定义状态类，用于保存你想要持久化的数据
+    // 定义状态类
     public static class State {
         public String username;
         public String password;
@@ -42,6 +47,34 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
         return ServiceManager.getService(PersistentStorage.class);
     }
 
+    // 手动保存状态到项目根目录
+    public void saveToFile() throws IOException {
+        String projectBasePath = ProjectManager.getInstance().getOpenProjects()[0].getBasePath();
+        if (projectBasePath == null) {
+            throw new IOException("Unable to find project base path");
+        }
+        String storagePath = projectBasePath + "/PersistentStorage.xml";
+        File storageFile = new File(storagePath);
+        if (!storageFile.exists()) {
+            storageFile.createNewFile();
+        }
+
+        // 简单保存内容到文件
+        try (FileWriter writer = new FileWriter(storageFile)) {
+            writer.write("<PersistentStorage>\n");
+            writer.write("\t<username>" + myState.username + "</username>\n");
+            writer.write("\t<password>" + myState.password + "</password>\n");
+            writer.write("\t<token>" + myState.token + "</token>\n");
+            writer.write("\t<url>" + myState.url + "</url>\n");
+            writer.write("</PersistentStorage>");
+        }
+    }
+
+    // 手动从文件加载状态
+    public void loadFromFile() throws IOException {
+        // 在这里，你可以编写代码来从 PersistentStorage.xml 文件中加载数据
+        // 比如用 XML 解析器来读取数据并填充到 myState 中
+    }
 
     /* 数据修改与调用 */
     public void setUsername(String value) {
@@ -76,6 +109,7 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
         return myState.url;
     }
 }
+
 
 /* 数据调用方法 */
 /*
