@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 // TODO 将这个弹窗的关闭按钮去掉
 public class GitBondDialog extends DialogWrapper {
@@ -105,6 +106,12 @@ public class GitBondDialog extends DialogWrapper {
                     PersistentStorage.getInstance().setPassword(tfPassWord.getText());
                     PersistentStorage.getInstance().setToken(tfToken.getText());
                     PersistentStorage.getInstance().setUrl(tfURL.getText());
+                    PersistentStorage.getInstance().setRepoName_Owner(tfURL.getText());
+                    try {
+                        PersistentStorage.getInstance().saveToFile();
+                    } catch (IOException E) {
+                        E.printStackTrace();
+                    }
                     this.close(OK_EXIT_CODE);
                     OptionDialog dialog = new OptionDialog();
                     dialog.show();

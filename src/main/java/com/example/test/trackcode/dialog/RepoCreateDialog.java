@@ -124,6 +124,12 @@ public class RepoCreateDialog extends DialogWrapper {
                     PersistentStorage.getInstance().setPassword(tfPassWord.getText());
                     PersistentStorage.getInstance().setToken(tfToken.getText());
                     PersistentStorage.getInstance().setUrl("https://github.com/"+tfUserName.getText()+"/"+tfRepoName.getText()+".git");
+                    PersistentStorage.getInstance().setRepoName_Owner("https://github.com/"+tfUserName.getText()+"/"+tfRepoName.getText()+".git");
+                    try {
+                        PersistentStorage.getInstance().saveToFile();
+                    } catch (IOException E) {
+                        E.printStackTrace();
+                    }
                 }
             }
 

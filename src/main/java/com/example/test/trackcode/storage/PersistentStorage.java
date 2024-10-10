@@ -11,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 // 使用 @State 注解标注持久化组件
 @State(
@@ -25,6 +27,8 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
         public String password;
         public String token;
         public String url;  // github url
+        public String owner;
+        public String repoName;
     }
 
     private State myState = new State();
@@ -66,6 +70,8 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
             writer.write("\t<password>" + myState.password + "</password>\n");
             writer.write("\t<token>" + myState.token + "</token>\n");
             writer.write("\t<url>" + myState.url + "</url>\n");
+            writer.write("\t<url>" + myState.owner + "</url>\n");
+            writer.write("\t<url>" + myState.repoName + "</url>\n");
             writer.write("</PersistentStorage>");
         }
     }
@@ -97,6 +103,24 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
         myState.token = value;
     }
 
+    public void setRepoName_Owner(String value) {
+
+        try {
+            URI uri = new URI(value);
+            String[] pathSegments = uri.getPath().split("/");
+
+            if (pathSegments.length >= 3) {
+                myState.owner = pathSegments[1];  // 获取owner部分
+                myState.repoName = pathSegments[2];   // 获取repo部分
+
+            } else {
+                System.out.println("Invalid GitHub URL format.");
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String getToken() {
         return myState.token;
     }
@@ -107,6 +131,14 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
 
     public String getUrl() {
         return myState.url;
+    }
+
+    public String getRepoName() {
+        return myState.repoName;
+    }
+
+    public String getOwner() {
+        return myState.owner;
     }
 }
 
