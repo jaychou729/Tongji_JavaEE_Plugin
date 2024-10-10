@@ -31,27 +31,18 @@ public class OptionDialog extends DialogWrapper {
     protected JComponent createSouthPanel() {
         JPanel panel = new JPanel(new FlowLayout());
         JButton btnClone = new JButton("克隆到本地项目");
-        JButton btnInit = new JButton("初始化远程仓库");
 
         btnClone.addActionListener(e -> {
-            // TODO 从远程仓库克隆项目到本地、成功消息提示、Exception捕捉消息提示
-
-            this.close(OK_EXIT_CODE);
-        });
-
-        btnInit.addActionListener(e -> {
-            try{
-                gitMethod.InitRepo();
-                MessageOutput.TakeMessage("推送远程仓库成功");
+            try {
+                gitMethod.CloneRepo();
+                MessageOutput.TakeMessage("克隆已完成");
                 this.close(OK_EXIT_CODE);
-            }catch (GitAPIException | IOException ex) {
-                System.out.println("error");
-                MessageOutput.TakeMessage("推送远程仓库失败,稍后重试");
+            } catch (GitAPIException | IOException ex) {
+                MessageOutput.TakeMessage("克隆失败，稍后重试");
             }
         });
 
         panel.add(btnClone);
-        panel.add(btnInit);
         return panel;
     }
 }

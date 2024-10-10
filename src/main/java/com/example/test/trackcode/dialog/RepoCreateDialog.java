@@ -1,10 +1,16 @@
 package com.example.test.trackcode.dialog;
 
+import com.example.test.trackcode.jgit.gitMethod;
+import com.example.test.trackcode.message.MessageOutput;
+import com.example.test.trackcode.network.GitHubRepositoryCreator;
+import com.example.test.trackcode.storage.PersistentStorage;
 import com.intellij.openapi.ui.DialogWrapper;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 
 // TODO 将这个弹窗的关闭按钮去掉
@@ -105,9 +111,42 @@ public class RepoCreateDialog extends DialogWrapper {
         JButton button = new JButton("创建并初始化远程仓库");
 
         button.addActionListener(e -> {
-            // TODO 存储信息、创建并初始化仓库、成功消息提示、Exception捕捉消息提示
+            // 保存数据
+            if(tfUserName.getText()==null||tfPassWord.getText()==null||tfToken.getText()==null||tfRepoName.getText()==null||tfDescription.getText()==null){
+                MessageOutput.TakeMessage("输入不能为空");
+            }
+            else{
+                if("".equals(tfUserName.getText()) || "".equals(tfPassWord.getText()) || "".equals(tfToken.getText())||"".equals(tfRepoName.getText())||"".equals(tfDescription.getText())){
+                    MessageOutput.TakeMessage("输入不能为空");
+                }
+                else{
+                    PersistentStorage.getInstance().setUsername(tfUserName.getText());
+                    PersistentStorage.getInstance().setPassword(tfPassWord.getText());
+                    PersistentStorage.getInstance().setToken(tfToken.getText());
+                    PersistentStorage.getInstance().setUrl("https://github.com/"+tfUserName.getText()+"/"+tfRepoName.getText()+".git");
+                }
+            }
 
-            this.close(OK_EXIT_CODE);
+            // 创建新的远程仓库
+            try {
+                GitHubRepositoryCreator.createGitHubRepo(tfRepoName.getText(),tfDescription.getText(),btnIsPrivate.isSelected(),tfToken.getText());
+
+                // 初始化仓库
+                try{
+                    gitMethod.InitRepo();
+                    MessageOutput.TakeMessage("推送远程仓库成功");
+                    this.close(OK_EXIT_CODE);
+                }catch (GitAPIException | IOException ex) {
+                    System.out.println("error");
+                    MessageOutput.TakeMessage("仓库以创建，请尝试推送");
+                    this.close(OK_EXIT_CODE);
+                    GitBondDialog gitBondDialog = new GitBondDialog();
+                    gitBondDialog.show();
+                }
+            } catch (Exception ex) {
+                MessageOutput.TakeMessage("仓库创建失败");
+                throw new RuntimeException(ex);
+            }
         });
 
         panel.add(button);

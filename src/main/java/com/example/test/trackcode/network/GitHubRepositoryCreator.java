@@ -11,7 +11,6 @@ import java.net.URL;
 // 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
 
 public class GitHubRepositoryCreator {
-
     public static void createGitHubRepo(String repoName, String description, boolean isPrivate, String token) throws Exception {
         String url = "https://api.github.com/user/repos";
         URL obj = new URL(url);
