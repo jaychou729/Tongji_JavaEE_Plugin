@@ -236,6 +236,39 @@ public class gitMethod {
     }
 
 
+    public static void createFolder(String FolderName) throws IOException {
+        // 构造 API 请求 URL
+        String apiUrl = "https://api.github.com/repos/" + PersistentStorage.getInstance().getOwner() + "/" + PersistentStorage.getInstance().getRepoName() + "/contents/" + FolderName + "/.gitkeep";
+        URL url = new URL(apiUrl);
+
+        // 创建连接
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("PUT");
+        conn.setRequestProperty("Authorization", "token " + PersistentStorage.getInstance().getToken());
+        conn.setRequestProperty("Content-Type", "application/json");
+
+        // 创建一个文件内容（空文件）
+        String message = "Create empty .gitkeep in folder " + FolderName;
+        String content = ""; // 空内容的 base64 编码结果是空字符串
+
+        // 请求体，包含提交的文件路径、内容、提交消息和目标分支
+        String jsonPayload = String.format("{\"message\": \"%s\", \"content\": \"%s\", \"branch\": \"%s\"}", message, content, "Version");
+        conn.setDoOutput(true);
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
+        }
+
+        // 处理响应
+        int responseCode = conn.getResponseCode();
+        if (responseCode == 201) { // HTTP 201 表示创建成功
+            System.out.println("Folder created successfully in branch " + "Version" + " with .gitkeep file.");
+        } else {
+            System.out.println("Failed to create folder in branch " + "Version" + ". Response Code: " + responseCode);
+        }
+        conn.disconnect();
+
+    }
+
 
     public static void commitFile(String FileName){
 

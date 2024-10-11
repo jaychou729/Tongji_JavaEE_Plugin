@@ -47,6 +47,13 @@ public class OptionDialog extends DialogWrapper {
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
+
+            try{
+                gitMethod.createFolder("test");
+                MessageOutput.TakeMessage("新建文件夹");
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         });
 
         panel.add(btnClone);
