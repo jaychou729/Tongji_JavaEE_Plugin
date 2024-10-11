@@ -107,11 +107,6 @@ public class GitBondDialog extends DialogWrapper {
                     PersistentStorage.getInstance().setToken(tfToken.getText());
                     PersistentStorage.getInstance().setUrl(tfURL.getText());
                     PersistentStorage.getInstance().setRepoName_Owner(tfURL.getText());
-                    try {
-                        PersistentStorage.getInstance().saveToFile();
-                    } catch (IOException E) {
-                        E.printStackTrace();
-                    }
                     this.close(OK_EXIT_CODE);
                     OptionDialog dialog = new OptionDialog();
                     dialog.show();

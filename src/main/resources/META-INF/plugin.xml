@@ -1,38 +1,33 @@
-<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>com.example.lmz</id>
-
-    <!-- Public plugin name should be written in Title Case.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
     <name>Test</name>
-
-    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="support@yourcompany.com" url="https://www.yourcompany.com">YourCompany</vendor>
 
-    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+
     <description><![CDATA[
     Enter short description for your plugin here.<br>
     <em>most HTML tags may be used</em>
   ]]></description>
 
-    <!-- Product and plugin compatibility requirements.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+
     <depends>com.intellij.modules.platform</depends>
 
-    <!-- Extension points defined by the plugin.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+
     <extensions defaultExtensionNs="com.intellij">
         <postStartupActivity implementation="com.example.test.trackcode.ktl.OnProjectOpen"/>
         <applicationService serviceImplementation="com.example.test.trackcode.storage.PersistentStorage"/>
-
     </extensions>
+
+
     <actions>
         <action id="MyFirstAction.id" class="com.example.test.MyFirstAction" text="第一个操作" description="嗷嗷嗷">
             <add-to-group group-id="MainToolBar" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl F11" second-keystroke="ctrl F12"/>
+        </action>
+        <action id="com.lycmoons.trackcode.rebond.id" class="com.example.test.trackcode.action.ReBondRepo"
+                text="仓库重绑" description="重新绑定远程仓库">
+            <add-to-group group-id="MainToolBar" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="meta 0"/>
         </action>
     </actions>
 </idea-plugin>
