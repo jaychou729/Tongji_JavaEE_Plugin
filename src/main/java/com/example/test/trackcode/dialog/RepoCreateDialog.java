@@ -127,31 +127,33 @@ public class RepoCreateDialog extends DialogWrapper {
                     PersistentStorage.getInstance().setRepoName_Owner("https://github.com/"+tfUserName.getText()+"/"+tfRepoName.getText()+".git");
                     try {
                         PersistentStorage.getInstance().saveToFile();
+                        MessageOutput.TakeMessage("数据存储成功");
+
+                        // 创建新的远程仓库
+                        try {
+                            GitHubRepositoryCreator.createGitHubRepo(tfRepoName.getText(),tfDescription.getText(),btnIsPrivate.isSelected(),tfToken.getText());
+
+                            // 初始化仓库
+                            try{
+                                gitMethod.InitRepo();
+                                MessageOutput.TakeMessage("推送远程仓库成功");
+                                this.close(OK_EXIT_CODE);
+                            }catch (GitAPIException | IOException ex) {
+                                System.out.println("error");
+                                MessageOutput.TakeMessage("仓库以创建，请尝试推送");
+                                this.close(OK_EXIT_CODE);
+                                GitBondDialog gitBondDialog = new GitBondDialog();
+                                gitBondDialog.show();
+                            }
+                        } catch (Exception ex) {
+                            MessageOutput.TakeMessage("仓库创建失败");
+                            throw new RuntimeException(ex);
+                        }
                     } catch (IOException E) {
                         E.printStackTrace();
+                        MessageOutput.TakeMessage("数据存储失败，请重新输入");
                     }
                 }
-            }
-
-            // 创建新的远程仓库
-            try {
-                GitHubRepositoryCreator.createGitHubRepo(tfRepoName.getText(),tfDescription.getText(),btnIsPrivate.isSelected(),tfToken.getText());
-
-                // 初始化仓库
-                try{
-                    gitMethod.InitRepo();
-                    MessageOutput.TakeMessage("推送远程仓库成功");
-                    this.close(OK_EXIT_CODE);
-                }catch (GitAPIException | IOException ex) {
-                    System.out.println("error");
-                    MessageOutput.TakeMessage("仓库以创建，请尝试推送");
-                    this.close(OK_EXIT_CODE);
-                    GitBondDialog gitBondDialog = new GitBondDialog();
-                    gitBondDialog.show();
-                }
-            } catch (Exception ex) {
-                MessageOutput.TakeMessage("仓库创建失败");
-                throw new RuntimeException(ex);
             }
         });
 
