@@ -107,6 +107,13 @@ public class GitBondDialog extends DialogWrapper {
                     PersistentStorage.getInstance().setToken(tfToken.getText());
                     PersistentStorage.getInstance().setUrl(tfURL.getText());
                     PersistentStorage.getInstance().setRepoName_Owner(tfURL.getText());
+                    try {
+                        PersistentStorage.getInstance().saveToFile();
+                        System.out.println("Stored");
+                    } catch (IOException E) {
+                        E.printStackTrace();
+                        MessageOutput.TakeMessage("数据存储失败，尝试重绑仓库");
+                    }
                     this.close(OK_EXIT_CODE);
                     OptionDialog dialog = new OptionDialog();
                     dialog.show();

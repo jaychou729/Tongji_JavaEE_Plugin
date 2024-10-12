@@ -14,6 +14,7 @@ class OnProjectOpen : ProjectActivity {
         val password = PersistentStorage.getInstance().password
         val token = PersistentStorage.getInstance().token
         val url = PersistentStorage.getInstance().url
+        println(username)
         if (username == null || password == null || token == null || url == null) {
             ApplicationManager.getApplication().invokeLater {
                 val dialog = GitBondDialog()

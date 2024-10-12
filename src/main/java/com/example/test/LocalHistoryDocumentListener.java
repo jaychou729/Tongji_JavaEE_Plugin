@@ -1,5 +1,7 @@
 package com.example.test;
 
+import com.example.test.trackcode.jgit.gitMethod;
+import com.example.test.trackcode.storage.PersistentStorage;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -14,6 +16,7 @@ import com.intellij.openapi.diagnostic.Logger;
 
 import com.intellij.openapi.util.Key;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -66,14 +69,18 @@ public class LocalHistoryDocumentListener implements DocumentListener {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                saveEditorContent();
+                try {
+                    saveEditorContent();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }, SAVE_DELAY);
     }
 
 
 
-    public void saveEditorContent() {
+    public void saveEditorContent() throws IOException {
         // 获取当前打开的编辑器
         Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
 
@@ -97,10 +104,57 @@ public class LocalHistoryDocumentListener implements DocumentListener {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            String FileName=fileName + "_record_"+timestamp+".txt";
+            commitToGithub(filePath,FileName);
         } else {
             System.out.println("No opened editor");
         }
     }
+
+    public void commitToGithub(String filePath,String FileName) throws IOException {
+        File file = new File(filePath);
+
+        String FolderName=getRelativePath();
+
+        if(gitMethod.isFolderPresent(
+                PersistentStorage.getInstance().getOwner(),
+                PersistentStorage.getInstance().getRepoName(),
+                "Version",
+                FolderName,
+                PersistentStorage.getInstance().getToken()
+                )){
+
+            gitMethod.commitFile(FileName,FolderName,file);
+
+        }
+        else{
+            gitMethod.createFolder(FolderName);
+            gitMethod.commitFile(FileName,FolderName,file);
+        }
+
+    }
+
+    public String getRelativePath() {
+        // 获取项目的根目录
+        VirtualFile projectBaseDir = project.getBaseDir();
+
+        // 获取当前选中的文件
+        VirtualFile selectedFile = FileEditorManager.getInstance(project).getSelectedFiles()[0];
+
+        // 获取项目根目录的路径和文件的路径
+        String projectBasePath = projectBaseDir.getPath();
+        String filePath = selectedFile.getPath();
+
+        // 返回文件相对于项目根目录的相对路径
+        if (filePath.startsWith(projectBasePath)) {
+            String original=filePath.substring(projectBasePath.length() + 1); // +1 是为了去掉开头的 "/"
+            return original.replaceAll("[/.]", "_");
+        } else {
+            return null; // 如果文件不在项目根目录下
+        }
+    }
+
 
 
 

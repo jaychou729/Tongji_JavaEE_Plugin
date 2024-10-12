@@ -1,5 +1,5 @@
 package com.example.test.trackcode.jgit;
-
+import java.util.concurrent.CompletableFuture;
 import com.example.test.trackcode.message.MessageOutput;
 import com.example.test.trackcode.storage.PersistentStorage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -11,21 +11,23 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.FileInputStream;
+
+import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.Scanner;
 import java.util.stream.Stream;
 import java.net.URI;
 
 import static org.apache.commons.io.file.PathUtils.deleteFile;
+import static org.apache.tools.ant.types.resources.MultiRootFileSet.SetType.file;
 
 public class gitMethod {
     // 本地仓库初始化并初始化远程仓库
@@ -74,27 +76,73 @@ public class gitMethod {
         // 当前项目路径
         String localPathStr = ProjectManager.getInstance().getOpenProjects()[0].getBasePath();
 
-        // 删除当前项目的内容
+        // 使用异步任务来获取token、username、url，并在完成后执行后续操作
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            // 获取 token, userName, url
+            String token = PersistentStorage.getInstance().getToken();
+            String userName = PersistentStorage.getInstance().getUsername();
+            String url = PersistentStorage.getInstance().getUrl();
+
+            // 打印调试信息
+            System.out.println("Repository URL: " + url + ".git");
+            System.out.println("Token: " + token);
+            System.out.println("Username: " + userName);
+
+            // 检查获取的信息是否为空
+            if (url == null || token == null || userName == null) {
+                throw new IllegalArgumentException("URL, token, or username is null. Cannot proceed.");
+            }
+
+            // 删除文件或执行其他操作
+            try {
+                deleteFiles(localPathStr);  // 例如你想在获取完信息后执行删除操作
+            } catch (IOException e) {
+                System.out.println("Failed to delete files.");
+                e.printStackTrace();
+            }
+
+            // 指定克隆的仓库和分支
+            CloneCommand cloneCommand = Git.cloneRepository()
+                    .setURI(url + ".git")  // 确保 URL 是完整的 Git URL
+                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(userName, token))
+                    .setDirectory(new File(localPathStr))  // 目标克隆目录
+                    .setCloneAllBranches(true);
+
+
+            // 执行克隆操作
+            try (Git git = cloneCommand.call()) {
+                System.out.println("Successfully cloned repository.");
+            } catch (Exception e) {
+                System.out.println("Failed to clone repository.");
+                e.printStackTrace();  // 打印异常信息
+            }
+        });
+
+        future.thenRunAsync(() -> {
+            // 这个任务将在克隆操作成功完成后异步执行
+            System.out.println("Cloning finished, executing additional async task...");
+
+            // 例如，执行某些额外的操作，比如更新UI或处理克隆完成后的数据
+            try {
+                PersistentStorage.getInstance().saveToFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        // 等待异步任务完成
+        future.join();  // 主线程会等待异步任务完成后再继续
+    }
+
+    public static void deleteFiles(String localPathStr) throws IOException {
         Path directory = Paths.get(localPathStr);
         if (Files.exists(directory)) {
             try (Stream<Path> files = Files.walk(directory)) {
-                files.sorted(Comparator.reverseOrder())  // 先删除子文件和子文件夹
+                files
+                        .sorted(Comparator.reverseOrder())
                         .map(Path::toFile)
                         .forEach(File::delete);  // 删除文件
             }
-        }
-
-        // 指定克隆的仓库和分支
-        CloneCommand cloneCommand = Git.cloneRepository()
-                .setURI(PersistentStorage.getInstance().getUrl())
-                .setDirectory(new File(localPathStr))
-                .setCloneAllBranches(true);
-
-        // 执行克隆操作
-        try (Git git = cloneCommand.call()) {
-            System.out.println("克隆成功");
-        }catch (Exception e) {
-            System.out.println("克隆失败");
         }
     }
 
@@ -270,8 +318,83 @@ public class gitMethod {
     }
 
 
-    public static void commitFile(String FileName){
+    public static void commitFile(String FileName,String FolderPath,File file) throws IOException {
+        // API URL to create or update a file in a repository
+        String apiUrl = "https://api.github.com/repos/" + PersistentStorage.getInstance().getOwner() + "/" + PersistentStorage.getInstance().getRepoName() + "/contents/" + FolderPath + "/" + FileName;
 
+        FileInputStream fileInputStream = new FileInputStream(file);
+        byte[] fileBytes = new byte[(int) file.length()];
+        fileInputStream.read(fileBytes);
+        fileInputStream.close();
+        String encodedContent = Base64.getEncoder().encodeToString(fileBytes);
+
+        // Create JSON payload
+        String payload = String.format("{\"message\":\"Add file %s\",\"content\":\"%s\",\"branch\":\"%s\"}",
+                FileName, encodedContent, "Version");
+
+        // Open connection to GitHub API
+        URL url = new URL(apiUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("PUT");
+        conn.setRequestProperty("Authorization", "token " + PersistentStorage.getInstance().getToken());
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
+
+        // Write the JSON payload to the output stream
+        OutputStream os = conn.getOutputStream();
+        os.write(payload.getBytes(StandardCharsets.UTF_8));
+        os.close();
+
+        // Read the response from GitHub
+        int responseCode = conn.getResponseCode();
+        if (responseCode == 201 || responseCode == 200) {
+            System.out.println("File uploaded successfully.");
+            Scanner scanner = new Scanner(conn.getInputStream());
+            while (scanner.hasNext()) {
+                System.out.println(scanner.nextLine());
+            }
+            scanner.close();
+        } else {
+            System.out.println("Failed to upload file. Response Code: " + responseCode);
+            Scanner scanner = new Scanner(conn.getErrorStream());
+            while (scanner.hasNext()) {
+                System.out.println(scanner.nextLine());
+            }
+            scanner.close();
+        }
+
+        conn.disconnect();
+    }
+
+    public static boolean isFolderPresent(String owner, String repo, String branch, String folderName, String token) {
+        try {
+            // 构建GitHub API的URL，用于获取仓库分支的内容
+            String apiUrl = String.format("https://api.github.com/repos/%s/%s/contents/%s?ref=%s", owner, repo, folderName, branch);
+
+            // 创建URL对象
+            URL url = new URL(apiUrl);
+
+            // 建立HTTP连接
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Authorization", "token " + token); // 添加GitHub token以进行身份验证
+
+            // 获取响应码
+            int responseCode = connection.getResponseCode();
+
+            // 如果响应码是200，表示文件夹存在
+            if (responseCode == 200) {
+                return true;
+            } else if (responseCode == 404) {
+                return false;
+            } else {
+                System.out.println("Unexpected response code: " + responseCode);
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 

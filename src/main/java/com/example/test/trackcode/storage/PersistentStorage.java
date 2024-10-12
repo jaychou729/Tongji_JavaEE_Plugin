@@ -7,7 +7,13 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -70,8 +76,8 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
             writer.write("\t<password>" + myState.password + "</password>\n");
             writer.write("\t<token>" + myState.token + "</token>\n");
             writer.write("\t<url>" + myState.url + "</url>\n");
-            writer.write("\t<url>" + myState.owner + "</url>\n");
-            writer.write("\t<url>" + myState.repoName + "</url>\n");
+            writer.write("\t<owner>" + myState.owner + "</owner>\n");
+            writer.write("\t<repoName>" + myState.repoName + "</repoName>\n");
             writer.write("</PersistentStorage>");
         }
     }
@@ -88,7 +94,7 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
     }
 
     public String getUsername() {
-        return myState.username;
+        return getValueFromXml("username");
     }
 
     public void setPassword(String value) {
@@ -96,7 +102,7 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
     }
 
     public String getPassword() {
-        return myState.password;
+        return getValueFromXml("password");
     }
 
     public void setToken(String value) {
@@ -122,23 +128,44 @@ public class PersistentStorage implements PersistentStateComponent<PersistentSto
     }
 
     public String getToken() {
-        return myState.token;
+        return getValueFromXml("token");
     }
 
     public void setUrl(String value) {
         myState.url = value;
     }
 
-    public String getUrl() {
-        return myState.url;
-    }
+    public String getUrl() { return getValueFromXml("url");}
 
-    public String getRepoName() {
-        return myState.repoName;
-    }
+    public String getRepoName() { return getValueFromXml("repoName");}
 
     public String getOwner() {
-        return myState.owner;
+        return getValueFromXml("owner");
+    }
+
+    private String getValueFromXml(String tagName) {
+        try {
+            String projectBasePath = ProjectManager.getInstance().getOpenProjects()[0].getBasePath();
+            String storagePath = projectBasePath + "/PersistentStorage.xml";
+
+            File xmlFile = new File(storagePath);
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(xmlFile);
+            doc.getDocumentElement().normalize();
+
+            NodeList nList = doc.getElementsByTagName(tagName);
+            if (nList.getLength() > 0) {
+                Node node = nList.item(0);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element element = (Element) node;
+                    return element.getTextContent();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;  // 返回null表示未找到对应节点或出错
     }
 }
 
