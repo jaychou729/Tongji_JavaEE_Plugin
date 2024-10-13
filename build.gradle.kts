@@ -17,6 +17,7 @@ dependencies {
     implementation("org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r") {
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
+    implementation("com.fifesoft:rsyntaxtextarea:3.5.1")
 
     // 手动指定兼容的 SLF4J 版本
 

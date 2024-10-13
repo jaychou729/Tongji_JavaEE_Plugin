@@ -29,5 +29,9 @@
             <add-to-group group-id="MainToolBar" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="meta 0"/>
         </action>
+        <action id="lycmoons.testaction.id" class="com.example.test.trackcode.action.TestAction" text="测试"
+                description="用于测试显示窗口">
+            <keyboard-shortcut keymap="$default" first-keystroke="meta 9"/>
+        </action>
     </actions>
 </idea-plugin>
