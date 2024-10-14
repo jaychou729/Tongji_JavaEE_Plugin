@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE RSyntaxTheme SYSTEM "theme.dtd">
+
+<!--
+	Theme that mimics IntelliJ IDEA's defaults.
+	See theme.dtd and org.fife.ui.rsyntaxtextarea.Theme for more information.
+-->
+<RSyntaxTheme version="1.0">
+
+    <!-- Omitting baseFont will use a system-appropriate monospaced. -->
+    <!--<baseFont family="..." size="13"/>-->
+
+    <!--  General editor colors. -->
+    <background color="ffffff" />
+    <caret color="000000" />
+    <selection fg="ffffff" bg="526da5" />
+    <currentLineHighlight color="ffffd7" fade="false" />
+    <marginLine fg="b0b4b9" />
+    <markAllHighlight color="ccccff" />
+    <markOccurrencesHighlight color="ccccff" border="false" />
+    <matchedBracket fg="99ccff" bg="99ccff" highlightBoth="true" animate="false" />
+    <hyperlinks fg="0000ff" />
+    <secondaryLanguages>
+        <language index="1" bg="fff0cc" />
+        <language index="2" bg="dafeda" />
+        <language index="3" bg="ffe0f0" />
+    </secondaryLanguages>
+
+    <!-- Gutter styling. -->
+    <gutterBorder color="dddddd" />
+    <lineNumbers fg="787878" />
+    <foldIndicator fg="808080" armedFg="585858" iconBg="ffffff" />
+    <iconRowHeader activeLineRange="3399ff" />
+
+    <!-- Syntax tokens. -->
+    <tokenStyles>
+        <style token="IDENTIFIER" fg="ffffff" />
+        <style token="RESERVED_WORD" fg="ff9400" bold="true" />
+        <style token="RESERVED_WORD_2" fg="ff9400" bold="true" />
+        <style token="ANNOTATION" fg="fff400" />
+        <style token="COMMENT_DOCUMENTATION" fg="008000" italic="true" />
+        <style token="COMMENT_EOL" fg="008000" italic="true" />
+        <style token="COMMENT_MULTILINE" fg="008000" italic="true" />
+        <style token="COMMENT_KEYWORD" fg="008000" bold="true" underline="true" italic="true" />
+        <style token="COMMENT_MARKUP" fg="008000" bg="e2ffe2" italic="true" />
+        <style token="DATA_TYPE" fg="ff9400" bold="true" />
+        <style token="FUNCTION" fg="ffffff" />
+        <style token="LITERAL_BOOLEAN" fg="ff9400" bold="true" />
+        <style token="LITERAL_NUMBER_DECIMAL_INT" fg="00ff98" />
+        <style token="LITERAL_NUMBER_FLOAT" fg="00ff98" />
+        <style token="LITERAL_NUMBER_HEXADECIMAL" fg="00ff98" />
+        <style token="LITERAL_STRING_DOUBLE_QUOTE" fg="34b327" bold="true" />
+        <style token="LITERAL_CHAR" fg="34b327" bold="true" />
+        <style token="LITERAL_BACKQUOTE" fg="34b327" bold="true" />
+        <style token="MARKUP_TAG_DELIMITER" fg="ffe300" bold="true" />
+        <style token="MARKUP_TAG_NAME" fg="ffe300" bold="true" />
+        <style token="MARKUP_TAG_ATTRIBUTE" fg="ffffff" bold="true" />
+        <style token="MARKUP_TAG_ATTRIBUTE_VALUE" fg="34b327" bold="true" />
+        <style token="MARKUP_COMMENT" fg="808080" italic="true"/>
+        <style token="MARKUP_DTD" fg="808080"/>
+        <style token="MARKUP_PROCESSING_INSTRUCTION"  fg="808080"/>
+        <style token="MARKUP_CDATA" fg="cc6600"/>
+        <style token="MARKUP_CDATA_DELIMITER" fg="008080"/>
+        <style token="MARKUP_ENTITY_REFERENCE" fg="008000"/>
+
+        <style token="OPERATOR" fg="ffffff" />
+        <style token="PREPROCESSOR" fg="ffffff" />
+        <style token="REGEX" fg="ffffff" />
+        <style token="SEPARATOR" fg="ffffff" />
+        <style token="VARIABLE" fg="ffffff" bold="true" />
+        <style token="WHITESPACE" fg="ffffff" />
+
+        <style token="ERROR_IDENTIFIER" fg="ff0000" />
+        <style token="ERROR_NUMBER_FORMAT" fg="ff0000" />
+        <style token="ERROR_STRING_DOUBLE" fg="ff0000" />
+        <style token="ERROR_CHAR" fg="ff0000" />
+    </tokenStyles>
+
+</RSyntaxTheme>
