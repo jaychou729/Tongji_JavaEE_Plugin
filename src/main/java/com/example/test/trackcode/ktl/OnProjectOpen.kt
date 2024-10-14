@@ -10,11 +10,12 @@ import com.intellij.openapi.startup.ProjectActivity
 // TODO 添加检测逻辑，当该项目的信息已经保存好后，不再显示弹窗
 class OnProjectOpen : ProjectActivity {
     override suspend fun execute(project: Project) {
+
         val username = PersistentStorage.getInstance().username
         val password = PersistentStorage.getInstance().password
         val token = PersistentStorage.getInstance().token
         val url = PersistentStorage.getInstance().url
-        println(username)
+
         if (username == null || password == null || token == null || url == null) {
             ApplicationManager.getApplication().invokeLater {
                 val dialog = GitBondDialog()

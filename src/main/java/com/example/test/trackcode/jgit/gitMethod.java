@@ -1,9 +1,19 @@
 package com.example.test.trackcode.jgit;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+
+import com.example.test.trackcode.datastruct.CodeVersion;
 import com.example.test.trackcode.message.MessageOutput;
 import com.example.test.trackcode.storage.PersistentStorage;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.ProjectManager;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -20,9 +30,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.Comparator;
-import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.net.URI;
 
@@ -397,6 +406,117 @@ public class gitMethod {
         }
     }
 
+    public static String fetchFileFromGitHub(String fileUrl) throws IOException {
+        StringBuilder content = new StringBuilder();
+        try {
+            // Create a URL object
+            URL url = new URL(fileUrl);
+
+            // Open connection
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            // Use BufferedReader to read the content
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+            int charValue;
+            while ((charValue = reader.read()) != -1) {
+                content.append((char) charValue);  // Append each character, including whitespace and newlines
+            }
+            reader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return content.toString();
+    }
+
+
+
+    public static boolean isValidBase64(String base64) {
+        String base64Pattern = "^[A-Za-z0-9+/=]+$";
+        return base64.matches(base64Pattern);
+    }
+
+
+    public static List<CodeVersion> fetchFilesFromGitHubFolder(String owner, String repo, String branch, String folderPath, String token) throws IOException {
+        // GitHub API URL，用于获取文件夹中的内容
+        String url = String.format("https://api.github.com/repos/%s/%s/contents/%s?ref=%s", owner, repo, folderPath, branch);
+
+        // 创建 HTTP 客户端
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpGet request = new HttpGet(url);
+
+        // 设置授权头部信息，使用 token 进行身份验证
+        request.setHeader("Authorization", "Bearer " + token);
+        request.setHeader("Accept", "application/vnd.github.v3+json");
+
+        List<CodeVersion> versions = new ArrayList<>();
+
+        try (CloseableHttpResponse response = httpClient.execute(request)) {
+            String jsonResponse = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+
+            // 使用 Jackson 解析 JSON 响应
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(jsonResponse);
+
+            // 遍历文件和文件夹列表
+            for (JsonNode node : jsonNode) {
+                if (node.get("type").asText().equals("file")) {
+                    // 如果是文件，获取文件名
+                    String fileName = node.get("name").asText();
+
+                    if (fileName.endsWith(".txt")) {
+                        System.out.println("Processing file: " + fileName);
+
+                        Map<String, String> dateTime = fileNameExtractor(fileName);
+
+                        // 拼接文件路径
+                        String filePath = "https://raw.githubusercontent.com/"+owner+"/"+repo+"/"+folderPath + "/" + fileName;
+
+                        // 获取文件内容
+                        String content = fetchFileFromGitHub(filePath);
+
+                        // 添加到版本列表
+                        versions.add(new CodeVersion(dateTime.get("date"), dateTime.get("time"), content));
+                    } else {
+                        System.out.println("Skipping non-txt file: " + fileName);
+                    }
+                }
+            }
+        }
+
+        // 按照日期和时间进行排序
+        Collections.sort(versions, new Comparator<CodeVersion>() {
+            @Override
+            public int compare(CodeVersion v1, CodeVersion v2) {
+                String dateTime1 = v1.getDate() + " " + v1.getTime();
+                String dateTime2 = v2.getDate() + " " + v2.getTime();
+                return dateTime1.compareTo(dateTime2);  // 先按日期再按时间排序
+            }
+        });
+
+        return versions;
+    }
+
+    public static Map<String,String> fileNameExtractor(String fileName){
+        System.out.println(fileName);
+        String regex = ".*_(\\d{4}-\\d{2}-\\d{2})_(\\d{2}-\\d{2}-\\d{2})(\\.txt)?";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(fileName);
+
+        if (matcher.matches()) {
+            String date = matcher.group(1);  // 提取到的日期部分
+            String time = matcher.group(2).replace("-", ":");  // 提取到的时间部分，并将 "-" 替换为 ":"
+            System.out.println(date);
+            // 将结果放入Map中
+            Map<String, String> dateTime = new HashMap<>();
+            dateTime.put("date", date);
+            dateTime.put("time", time);
+            System.out.println(dateTime);
+            return dateTime;
+        }
+        return null;
+    }
 
 }
 

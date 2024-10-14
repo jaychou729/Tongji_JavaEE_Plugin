@@ -6,26 +6,23 @@ import com.intellij.openapi.ui.DialogWrapper;
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
-import org.w3c.dom.css.RGBColor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.List;
 
 public class ShowDiffDialog extends DialogWrapper {
     String curCode;
     CodeVersion[] versionList;
 
-    public ShowDiffDialog(String fn, CodeVersion[] vl, String cc) {
+    public ShowDiffDialog(String fn, List<CodeVersion> vl, String cc) {
         super(true);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setSize((int)(screenSize.width*0.8), (int)(screenSize.height*0.8));
         this.setTitle("versions of " + fn);
         curCode = cc;
-        versionList = vl;
+        versionList = vl.toArray(new CodeVersion[0]);
         init();
     }
 
@@ -67,14 +64,13 @@ public class ShowDiffDialog extends DialogWrapper {
                 // 创建一个 JPanel 用于承载两行字符串
                 JPanel panel = new JPanel();
                 panel.setLayout(new BorderLayout());
-                panel.setPreferredSize(new Dimension(50,50));
                 panel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1)); // 边框
 
                 // 创建 JLabel 用于显示每行字符串
                 JLabel line1 = new JLabel(date); // 第一行
                 JLabel line2 = new JLabel(time); // 第二行
-                line1.setFont(new Font("Arial", Font.BOLD, 20)); // 设置第一行字体
-                line2.setFont(new Font("Arial", Font.PLAIN, 16)); // 设置第二行字体
+                line1.setFont(new Font("Arial", Font.BOLD, 16)); // 设置第一行字体
+                line2.setFont(new Font("Arial", Font.PLAIN, 12)); // 设置第二行字体
 
                 // 设置背景颜色，区分选中和未选中状态
                 if (isSelected) {
@@ -114,22 +110,13 @@ public class ShowDiffDialog extends DialogWrapper {
         // TODO 放置代码
         // 创建 RSyntaxTextArea
         RSyntaxTextArea textArea = new RSyntaxTextArea();
-        // 加载 IntelliJ IDEA 样式主题
-        try {
-            InputStream themeStream = getClass().getResourceAsStream("/themes/idea.xml");
-            Theme theme = Theme.load(themeStream);
-            theme.apply(textArea);  // 应用主题
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         textArea.setText(curCode);
         textArea.setEditable(false); // 设置为不可编辑
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // 根据文件类型设置语法样式
         textArea.setCodeFoldingEnabled(true); // 启用代码折叠
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 18)); // 设置字体
-        textArea.setBackground(Color.DARK_GRAY);
+        textArea.setBackground(Color.LIGHT_GRAY);
         textArea.setHighlightCurrentLine(false);
-
 
         // 创建带滚动条的面板
         RTextScrollPane testPanel = new RTextScrollPane(textArea);
@@ -154,20 +141,12 @@ public class ShowDiffDialog extends DialogWrapper {
         curCodePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
         // TODO 放置代码
         RSyntaxTextArea textArea2 = new RSyntaxTextArea();
-        // 加载 IntelliJ IDEA 样式主题
-        try {
-            InputStream themeStream = getClass().getResourceAsStream("/themes/idea.xml");
-            Theme theme = Theme.load(themeStream);
-            theme.apply(textArea2);  // 应用主题
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         textArea2.setText(curCode);
         textArea2.setEditable(false); // 设置为不可编辑
         textArea2.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // 根据文件类型设置语法样式
         textArea2.setCodeFoldingEnabled(true); // 启用代码折叠
         textArea2.setFont(new Font("Monospaced", Font.PLAIN, 18)); // 设置字体
-        textArea2.setBackground(Color.DARK_GRAY);
+        textArea2.setBackground(Color.LIGHT_GRAY);
         textArea2.setHighlightCurrentLine(false);
 
 
