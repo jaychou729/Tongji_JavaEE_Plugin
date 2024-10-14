@@ -31,6 +31,13 @@ configurations.all {
 }
 
 
+//sourceSets {
+//    main {
+//        resources {
+//            srcDir("src/main/resources")
+//        }
+//    }
+//}
 
 
 // Configure Gradle IntelliJ Plugin

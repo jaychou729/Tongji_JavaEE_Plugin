@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.diagnostic.Logger;
 
 public class MyFirstAction extends AnAction {
-
     private static final Logger logger = Logger.getInstance(MyFirstAction.class);
 
     @Override
