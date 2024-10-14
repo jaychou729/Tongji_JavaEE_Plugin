@@ -6,10 +6,13 @@ import com.intellij.openapi.ui.DialogWrapper;
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class ShowDiffDialog extends DialogWrapper {
@@ -110,12 +113,22 @@ public class ShowDiffDialog extends DialogWrapper {
         // TODO 放置代码
         // 创建 RSyntaxTextArea
         RSyntaxTextArea textArea = new RSyntaxTextArea();
+
+        // 加载 IntelliJ IDEA 样式主题
+        try {
+            InputStream themeStream = getClass().getResourceAsStream("/themes/idea.xml");
+            Theme theme = Theme.load(themeStream);
+            theme.apply(textArea);  // 应用主题
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         textArea.setText(curCode);
         textArea.setEditable(false); // 设置为不可编辑
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // 根据文件类型设置语法样式
         textArea.setCodeFoldingEnabled(true); // 启用代码折叠
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 18)); // 设置字体
-        textArea.setBackground(Color.LIGHT_GRAY);
+        textArea.setBackground(Color.DARK_GRAY);
         textArea.setHighlightCurrentLine(false);
 
         // 创建带滚动条的面板
@@ -141,12 +154,22 @@ public class ShowDiffDialog extends DialogWrapper {
         curCodePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
         // TODO 放置代码
         RSyntaxTextArea textArea2 = new RSyntaxTextArea();
+
+        // 加载 IntelliJ IDEA 样式主题
+        try {
+            InputStream themeStream = getClass().getResourceAsStream("/themes/idea.xml");
+            Theme theme = Theme.load(themeStream);
+            theme.apply(textArea2);  // 应用主题
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         textArea2.setText(curCode);
         textArea2.setEditable(false); // 设置为不可编辑
         textArea2.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // 根据文件类型设置语法样式
         textArea2.setCodeFoldingEnabled(true); // 启用代码折叠
         textArea2.setFont(new Font("Monospaced", Font.PLAIN, 18)); // 设置字体
-        textArea2.setBackground(Color.LIGHT_GRAY);
+        textArea2.setBackground(Color.DARK_GRAY);
         textArea2.setHighlightCurrentLine(false);
 
 

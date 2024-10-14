@@ -29,10 +29,10 @@ public class TestAction extends AnAction {
                 "}";
 
         ApplicationManager.getApplication().invokeLater(() -> {
-            /*CodeVersion[] versions ={
-                    new CodeVersion("2024-10-14","10:00:00","first line\nsecond line\nthird line"),
-                    new CodeVersion("2024-10-15","12:37:11","fff\nhhh\nccc")
-            };*/
+//            CodeVersion[] versions = {
+//                    new CodeVersion("2024-10-14","10:00:00","first line\nsecond line\nthird line"),
+//                    new CodeVersion("2024-10-15","12:37:11","fff\nhhh\nccc")
+//            };
 
             String owner= PersistentStorage.getInstance().getOwner();
             String repo=PersistentStorage.getInstance().getRepoName();
