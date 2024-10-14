@@ -471,7 +471,7 @@ public class gitMethod {
                         Map<String, String> dateTime = fileNameExtractor(fileName);
 
                         // 拼接文件路径
-                        String filePath = "https://raw.githubusercontent.com/"+owner+"/"+repo+"/"+folderPath + "/" + fileName;
+                        String filePath = "https://raw.githubusercontent.com/"+owner+"/"+repo+"/Version/"+folderPath + "/" + fileName;
 
                         // 获取文件内容
                         String content = fetchFileFromGitHub(filePath);
