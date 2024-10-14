@@ -8,23 +8,25 @@ import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.util.*;
+import java.util.List;
 
 public class ShowDiffDialog extends DialogWrapper {
-
-    String fileName = "Main.java";
     String curCode;
-    Vension[] vesionList;
+    Vension[] versionList;
 
-    // TODO 通过构造函数获取参数列表
-    public ShowDiffDialog() {
+    public ShowDiffDialog(String fn, Vension[] vl,String cc) {
         super(true);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setSize((int)(screenSize.width*0.8), (int)(screenSize.height*0.8));
-        this.setTitle("versions of " + fileName);
+        this.setTitle("versions of " + fn);
+        curCode = cc;
+        versionList = vl;
         init();
     }
 
@@ -47,36 +49,45 @@ public class ShowDiffDialog extends DialogWrapper {
         JPanel panel1 = new JPanel(layout1);  // 列表面板
         panel1.add(new JLabel("版本列表"),BorderLayout.NORTH);  // 添加小标题
         JScrollPane scrollPane = new JScrollPane();  // 滚轮面板
-        JList<String> list = new JList<>(new String[] {"Version1","Version2","Version3"});  // 列表内容
+
+        String[] data = new String[versionList.length];
+        for (int i = 0; i < versionList.length; i++) {
+            data[i] = versionList[i].getDate() + "," + versionList[i].getTime();
+        }
+        JList<String> list = new JList<>(data);  // 列表内容
 
         // 创建自定义的渲染器
         DefaultListCellRenderer renderer = new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                // 创建一个 JPanel 作为容器
+
+                String[] parts = value.toString().split(",", 2);  // 2 表示分割为最多两部分
+                String date = parts[0];  // 逗号前的部分
+                String time = parts[1];   // 逗号后的部分
+
+                // 创建一个 JPanel 用于承载两行字符串
                 JPanel panel = new JPanel();
                 panel.setLayout(new BorderLayout());
+                panel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1)); // 边框
 
-                // 设置边框
-                panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2)); // 设置灰色边框，厚度为 2
+                // 创建 JLabel 用于显示每行字符串
+                JLabel line1 = new JLabel(date); // 第一行
+                JLabel line2 = new JLabel(time); // 第二行
+                line1.setFont(new Font("Arial", Font.BOLD, 16)); // 设置第一行字体
+                line2.setFont(new Font("Arial", Font.PLAIN, 12)); // 设置第二行字体
 
-                // 创建 JLabel 并设置字体样式和内容
-                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                label.setFont(new Font("Arial", Font.BOLD, 16)); // 设置字体为 Arial，粗体，大小为 16
-                label.setPreferredSize(new Dimension(200, 30)); // 设置每一项的大小
-
-                // 将 JLabel 添加到 JPanel 中
-                panel.add(label, BorderLayout.CENTER);
-
-                // 选中时改变背景颜色
+                // 设置背景颜色，区分选中和未选中状态
                 if (isSelected) {
-                    panel.setBackground(Color.LIGHT_GRAY); // 选中时设置背景颜色
+                    panel.setBackground(Color.BLUE);
                 } else {
-                    panel.setBackground(Color.WHITE); // 默认背景颜色
+                    panel.setBackground(Color.DARK_GRAY);
                 }
 
-                // 返回带边框的面板
-                return panel;
+                // 将两行添加到面板中
+                panel.add(line1, BorderLayout.NORTH); // 第一行在顶部
+                panel.add(line2, BorderLayout.SOUTH); // 第二行在底部
+
+                return panel; // 返回自定义的面板
             }
         };
 
@@ -103,12 +114,13 @@ public class ShowDiffDialog extends DialogWrapper {
         // TODO 放置代码
         // 创建 RSyntaxTextArea
         RSyntaxTextArea textArea = new RSyntaxTextArea();
-        textArea.setText("System.out.println(\"hello world!!\");");
+        textArea.setText(curCode);
         textArea.setEditable(false); // 设置为不可编辑
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // 根据文件类型设置语法样式
         textArea.setCodeFoldingEnabled(true); // 启用代码折叠
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12)); // 设置字体
-        textArea.setBackground(Color.DARK_GRAY);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 18)); // 设置字体
+        textArea.setBackground(Color.LIGHT_GRAY);
+        textArea.setHighlightCurrentLine(false);
 
         // 创建带滚动条的面板
         RTextScrollPane testPanel = new RTextScrollPane(textArea);
@@ -133,12 +145,14 @@ public class ShowDiffDialog extends DialogWrapper {
         curCodePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
         // TODO 放置代码
         RSyntaxTextArea textArea2 = new RSyntaxTextArea();
-        textArea2.setText("System.out.println(\"hello world!!\");");
+        textArea2.setText(curCode);
         textArea2.setEditable(false); // 设置为不可编辑
         textArea2.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // 根据文件类型设置语法样式
         textArea2.setCodeFoldingEnabled(true); // 启用代码折叠
-        textArea2.setFont(new Font("Monospaced", Font.PLAIN, 12)); // 设置字体
-        textArea2.setBackground(Color.DARK_GRAY);
+        textArea2.setFont(new Font("Monospaced", Font.PLAIN, 18)); // 设置字体
+        textArea2.setBackground(Color.LIGHT_GRAY);
+        textArea2.setHighlightCurrentLine(false);
+
 
         // 创建带滚动条的面板
         RTextScrollPane testPanel2 = new RTextScrollPane(textArea2);
