@@ -1,26 +1,21 @@
 package com.example.test.trackcode.dialog;
 
 
-import com.example.test.trackcode.datastruct.Vension;
-import com.intellij.openapi.project.Project;
+import com.example.test.trackcode.datastruct.CodeVersion;
 import com.intellij.openapi.ui.DialogWrapper;
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
-import java.util.*;
-import java.util.List;
 
 public class ShowDiffDialog extends DialogWrapper {
     String curCode;
-    Vension[] versionList;
+    CodeVersion[] versionList;
 
-    public ShowDiffDialog(String fn, Vension[] vl,String cc) {
+    public ShowDiffDialog(String fn, CodeVersion[] vl, String cc) {
         super(true);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setSize((int)(screenSize.width*0.8), (int)(screenSize.height*0.8));

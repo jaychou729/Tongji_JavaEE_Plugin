@@ -1,11 +1,11 @@
 package com.example.test.trackcode.datastruct;
 
-public class Vension {
+public class CodeVersion {
     private String date;
     private String time;
     private String code;
 
-    public Vension(String date, String time, String code) {
+    public CodeVersion(String date, String time, String code) {
         this.date = date;
         this.time = time;
         this.code = code;

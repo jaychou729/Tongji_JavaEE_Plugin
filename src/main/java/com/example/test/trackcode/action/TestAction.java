@@ -1,7 +1,6 @@
 package com.example.test.trackcode.action;
 
-import com.example.test.trackcode.datastruct.Vension;
-import com.example.test.trackcode.dialog.GitBondDialog;
+import com.example.test.trackcode.datastruct.CodeVersion;
 import com.example.test.trackcode.dialog.ShowDiffDialog;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -25,9 +24,9 @@ public class TestAction extends AnAction {
                 "}";
 
         ApplicationManager.getApplication().invokeLater(() -> {
-            Vension[] versions ={
-                    new Vension("2024-10-14","10:00:00","first line\nsecond line\nthird line"),
-                    new Vension("2024-10-15","12:37:11","fff\nhhh\nccc")
+            CodeVersion[] versions ={
+                    new CodeVersion("2024-10-14","10:00:00","first line\nsecond line\nthird line"),
+                    new CodeVersion("2024-10-15","12:37:11","fff\nhhh\nccc")
             };
             ShowDiffDialog showDiffDialog = new ShowDiffDialog("Main.java",versions,code);
             showDiffDialog.show();
