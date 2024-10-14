@@ -16,15 +16,14 @@ public class TestAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-
-        String code = "@Override\n" +
+        String code = "// 这是一行注释\n" + "@Override\n" +
                 "public void actionPerformed(AnActionEvent e) {\n" +
                 "    ApplicationManager.getApplication().invokeLater(() -> {\n" +
                 "        Vension[] versions ={\n" +
                 "                new Vension(\"2024-10-14\",\"10:00:00\",\"first line\\nsecond line\\nthird line\"),\n" +
                 "                new Vension(\"2024-10-15\",\"12:37:11\",\"fff\\nhhh\\nccc\")\n" +
                 "        };\n" +
-                "        ShowDiffDialog showDiffDialog = new ShowDiffDialog(\"Main.java\",versions,\"cur\\ncode\");\n" +
+                "        ShowDiffDialog showDiffDialog = new ShowDiffDialog(\"Main.java\",versions,\"curCode\");\n" +
                 "        showDiffDialog.show();\n" +
                 "    });\n" +
                 "}";
