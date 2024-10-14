@@ -115,7 +115,7 @@ public class LocalHistoryDocumentListener implements DocumentListener {
     public void commitToGithub(String filePath,String FileName) throws IOException {
         File file = new File(filePath);
 
-        String FolderName=getRelativePath();
+        String FolderName=getRelativePath(this.project);
 
         if(gitMethod.isFolderPresent(
                 PersistentStorage.getInstance().getOwner(),
@@ -135,7 +135,7 @@ public class LocalHistoryDocumentListener implements DocumentListener {
 
     }
 
-    public String getRelativePath() {
+    public static String getRelativePath(Project project) {
         // 获取项目的根目录
         VirtualFile projectBaseDir = project.getBaseDir();
 

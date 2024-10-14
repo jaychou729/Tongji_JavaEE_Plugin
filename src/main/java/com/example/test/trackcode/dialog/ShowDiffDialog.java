@@ -10,18 +10,19 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class ShowDiffDialog extends DialogWrapper {
     String curCode;
     CodeVersion[] versionList;
 
-    public ShowDiffDialog(String fn, CodeVersion[] vl, String cc) {
+    public ShowDiffDialog(String fn, List<CodeVersion> vl, String cc) {
         super(true);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setSize((int)(screenSize.width*0.8), (int)(screenSize.height*0.8));
         this.setTitle("versions of " + fn);
         curCode = cc;
-        versionList = vl;
+        versionList = vl.toArray(new CodeVersion[0]);
         init();
     }
 
