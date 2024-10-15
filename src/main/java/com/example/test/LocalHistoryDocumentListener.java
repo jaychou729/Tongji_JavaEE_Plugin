@@ -95,7 +95,19 @@ public class LocalHistoryDocumentListener implements DocumentListener {
             String fileName = file.getNameWithoutExtension();
 
             // 定义保存的路径（如：项目根目录下的一个 txt 文件）
-            String filePath = project.getBasePath() + "/.history/" + fileName + "_record_"+timestamp+".txt";
+            String historyDirPath = project.getBasePath() + "/.history";
+            String filePath = historyDirPath + "/" + fileName + "_record_" + timestamp + ".txt";
+
+            // 创建 .history 文件夹（如果不存在）
+            File historyDir = new File(historyDirPath);
+            if (!historyDir.exists()) {
+                if (historyDir.mkdirs()) {  // 尝试创建多级目录
+                    System.out.println(".history directory created successfully.");
+                } else {
+                    System.err.println("Failed to create .history directory.");
+                    return;  // 如果无法创建文件夹，停止操作
+                }
+            }
 
             // 使用 OutputStreamWriter 指定编码为 UTF-8 来避免乱码
             try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(filePath), "UTF-8")) {
@@ -105,12 +117,13 @@ public class LocalHistoryDocumentListener implements DocumentListener {
                 e.printStackTrace();
             }
 
-            String FileName=fileName + "_record_"+timestamp+".txt";
-            commitToGithub(filePath,FileName);
+            String FileName = fileName + "_record_" + timestamp + ".txt";
+            commitToGithub(filePath, FileName);
         } else {
             System.out.println("No opened editor");
         }
     }
+
 
     public void commitToGithub(String filePath,String FileName) throws IOException {
         File file = new File(filePath);
