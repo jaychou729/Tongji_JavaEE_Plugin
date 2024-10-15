@@ -157,6 +157,7 @@ public class gitMethod {
 
     public static void createBranch() throws IOException {
         String sha = null;
+        String branchName = "Version";  // 目标分支名称
 
         // Step 1: 获取主分支的 SHA 值
         String getShaUrl = "https://api.github.com/repos/" + PersistentStorage.getInstance().getOwner() + "/" +
@@ -182,7 +183,25 @@ public class gitMethod {
         }
         getConn.disconnect();
 
-        // Step 2: 使用获取到的 SHA 在远程仓库创建新的分支
+        // Step 2: 检查目标分支是否已经存在
+        String checkBranchUrl = "https://api.github.com/repos/" + PersistentStorage.getInstance().getOwner() + "/" +
+                PersistentStorage.getInstance().getRepoName() + "/git/refs/heads/" + branchName;
+
+        HttpURLConnection checkConn = (HttpURLConnection) new URL(checkBranchUrl).openConnection();
+        checkConn.setRequestMethod("GET");
+        checkConn.setRequestProperty("Authorization", "token " + PersistentStorage.getInstance().getToken());
+
+        if (checkConn.getResponseCode() == 200) {
+            // 分支已经存在，直接返回或执行其他操作
+            System.out.println("Branch '" + branchName + "' already exists.");
+            return;  // 如果不需要再操作，直接返回
+        } else if (checkConn.getResponseCode() != 404) {
+            // 如果不是 404（即分支不存在），抛出其他错误
+            throw new IOException("Error: " + checkConn.getResponseCode() + " - Unable to check branch existence");
+        }
+        checkConn.disconnect();
+
+        // Step 3: 使用获取到的 SHA 在远程仓库创建新的分支
         String createBranchUrl = "https://api.github.com/repos/" + PersistentStorage.getInstance().getOwner() + "/" +
                 PersistentStorage.getInstance().getRepoName() + "/git/refs";
 
@@ -193,7 +212,7 @@ public class gitMethod {
         postConn.setRequestProperty("Content-Type", "application/json");
 
         // 构建 JSON 请求体
-        String payload = String.format("{\"ref\": \"refs/heads/%s\", \"sha\": \"%s\"}", "Version", sha);
+        String payload = String.format("{\"ref\": \"refs/heads/%s\", \"sha\": \"%s\"}", branchName, sha);
         postConn.setDoOutput(true);
         try (OutputStream os = postConn.getOutputStream()) {
             os.write(payload.getBytes(StandardCharsets.UTF_8));
@@ -201,14 +220,17 @@ public class gitMethod {
 
         int responseCode = postConn.getResponseCode();
         if (responseCode == 201) {
-            System.out.println("New branch 'Version' created successfully.");
+            System.out.println("New branch '" + branchName + "' created successfully.");
         } else {
             System.out.println("Failed to create branch. Response Code: " + responseCode);
         }
 
         postConn.disconnect();
+
+        // Step 4: 删除目标分支上的所有文件
         deleteAllFilesInBranch();
     }
+
 
     public static void deleteAllFilesInBranch() throws IOException {
         String repoOwner = PersistentStorage.getInstance().getOwner();

@@ -45,6 +45,11 @@ public class OptionDialog extends DialogWrapper {
             } catch (GitAPIException | IOException ex) {
                 MessageOutput.TakeMessage("克隆失败，稍后重试");
             }
+            try {
+                gitMethod.createBranch();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         });
 
         panel.add(btnClone);
