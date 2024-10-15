@@ -13,7 +13,7 @@ import java.io.IOException;
 public class GitBondDialog extends DialogWrapper {
 
     private JTextField tfUserName;
-    private JPasswordField tfPassWord;
+    private JTextField tfPassWord;
     private JTextField tfToken;
     private JTextField tfURL;
 
@@ -51,7 +51,7 @@ public class GitBondDialog extends DialogWrapper {
 
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        tfPassWord = new JPasswordField(30);
+        tfPassWord = new JTextField(30);
         panel.add(tfPassWord, gbc);
 
         // 第三行输入
