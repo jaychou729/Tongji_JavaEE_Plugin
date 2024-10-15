@@ -34,8 +34,6 @@ public class OptionDialog extends DialogWrapper {
         JButton btnClone = new JButton("克隆到本地项目");
 
         btnClone.addActionListener(e -> {
-            // 存储文件
-
             // 克隆项目
             try {
                 gitMethod.CloneRepo();
