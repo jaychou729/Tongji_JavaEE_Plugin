@@ -5,7 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /* 我的测试令牌 */
-// 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
+// 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
 
 /*LMZ令牌*/
 // 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
