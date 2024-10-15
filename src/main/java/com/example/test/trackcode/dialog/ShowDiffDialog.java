@@ -18,6 +18,7 @@ import java.util.List;
 public class ShowDiffDialog extends DialogWrapper {
     String curCode;
     CodeVersion[] versionList;
+    int curSelectedIndex = -1;      // 初始情况下 -1 表示没有任何选择
 
     public ShowDiffDialog(String fn, List<CodeVersion> vl, String cc) {
         super(true);
@@ -93,6 +94,7 @@ public class ShowDiffDialog extends DialogWrapper {
         // 应用自定义渲染器
         list.setCellRenderer(renderer);
 
+
         scrollPane.setViewportView(list);   // 添加列表内容
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
         panel1.add(scrollPane, BorderLayout.CENTER);  // 添加滚轮面板
@@ -110,7 +112,6 @@ public class ShowDiffDialog extends DialogWrapper {
         panel2.add(new JLabel("版本代码展示区"),BorderLayout.NORTH);  // 添加小标题
         JPanel vensionCodePanel = new JPanel(new BorderLayout());
         vensionCodePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1)); // 设置边框
-        // TODO 放置代码
         // 创建 RSyntaxTextArea
         RSyntaxTextArea textArea = new RSyntaxTextArea();
 
@@ -123,7 +124,7 @@ public class ShowDiffDialog extends DialogWrapper {
             e.printStackTrace();
         }
 
-        textArea.setText(curCode);
+        textArea.setText("");    // 初始没有任何选择，字符串为空
         textArea.setEditable(false); // 设置为不可编辑
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA); // 根据文件类型设置语法样式
         textArea.setCodeFoldingEnabled(true); // 启用代码折叠
@@ -136,9 +137,14 @@ public class ShowDiffDialog extends DialogWrapper {
         vensionCodePanel.add(testPanel, BorderLayout.CENTER);
 
 
-
         panel2.add(vensionCodePanel,BorderLayout.CENTER);
         backgroundPanel.add(panel2,gbc);
+
+
+        list.addListSelectionListener(e -> {
+            curSelectedIndex = list.getSelectedIndex();
+            textArea.setText(versionList[curSelectedIndex].getCode());
+        });
 
 
         // 当前版本的代码展示栏
@@ -152,7 +158,6 @@ public class ShowDiffDialog extends DialogWrapper {
         panel3.add(new JLabel("当前代码展示区"),BorderLayout.NORTH);  // 添加小标题
         JPanel curCodePanel = new JPanel(new BorderLayout());
         curCodePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-        // TODO 放置代码
         RSyntaxTextArea textArea2 = new RSyntaxTextArea();
 
         // 加载 IntelliJ IDEA 样式主题

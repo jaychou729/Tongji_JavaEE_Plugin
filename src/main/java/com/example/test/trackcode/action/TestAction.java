@@ -10,6 +10,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TestAction extends AnAction {
@@ -19,6 +20,12 @@ public class TestAction extends AnAction {
 
 
         ApplicationManager.getApplication().invokeLater(() -> {
+//            List<CodeVersion> versions = new ArrayList<>();
+//            versions.add(new CodeVersion("111","111","111"));
+//            versions.add(new CodeVersion("222","222","222"));
+//            versions.add(new CodeVersion("333","333","333"));
+
+
             String owner= PersistentStorage.getInstance().getOwner();
             String repo=PersistentStorage.getInstance().getRepoName();
             String branch="Version";
