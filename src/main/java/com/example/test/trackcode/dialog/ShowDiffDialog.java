@@ -2,6 +2,12 @@ package com.example.test.trackcode.dialog;
 
 
 import com.example.test.trackcode.datastruct.CodeVersion;
+import com.example.test.trackcode.message.MessageOutput;
+import com.github.difflib.DiffUtils;
+import com.github.difflib.algorithm.DiffException;
+import com.github.difflib.patch.AbstractDelta;
+import com.github.difflib.patch.DeltaType;
+import com.github.difflib.patch.Patch;
 import com.intellij.openapi.ui.DialogWrapper;
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -10,9 +16,15 @@ import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ShowDiffDialog extends DialogWrapper {
@@ -138,14 +150,9 @@ public class ShowDiffDialog extends DialogWrapper {
 
 
         panel2.add(vensionCodePanel,BorderLayout.CENTER);
-        panel2.setPreferredSize(new Dimension(500,500));
+        panel2.setPreferredSize(new Dimension(600,500));
         backgroundPanel.add(panel2,gbc);
 
-
-        list.addListSelectionListener(e -> {
-            curSelectedIndex = list.getSelectedIndex();
-            textArea.setText(versionList[curSelectedIndex].getCode());
-        });
 
 
         // 当前版本的代码展示栏
@@ -188,6 +195,144 @@ public class ShowDiffDialog extends DialogWrapper {
         backgroundPanel.add(panel3,gbc);
 
 
+        list.addListSelectionListener(e -> {
+            curSelectedIndex = list.getSelectedIndex();
+            String versionCode = versionList[curSelectedIndex].getCode();
+            textArea.setText(versionCode);
+
+            // 消除之前的高亮
+            Highlighter versionHighlighter = textArea.getHighlighter();
+            Highlighter curHighlighter = textArea2.getHighlighter();
+            versionHighlighter.removeAllHighlights();
+            curHighlighter.removeAllHighlights();
+
+            // diff获取差别
+            // 将字符串按行分割为 List<String>
+            List<String> original = Arrays.asList(versionCode.split("\n"));
+            List<String> revised = Arrays.asList(curCode.split("\n"));
+
+            // 使用 DiffUtils 来生成代码差异的补丁
+            Patch<String> patch = null;
+            try {
+                patch = DiffUtils.diff(original, revised);
+            } catch (DiffException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            // 第一个数组：发生 CHANGE 类型改变的行在 original 代码中的行号
+            List<Integer> changeLinesInOriginal = new ArrayList<>();
+            // 第二个数组：发生 CHANGE 类型改变的行在 revised 代码中的行号
+            List<Integer> changeLinesInRevised = new ArrayList<>();
+            // 第三个数组：original 代码中被删除的行的行号
+            List<Integer> deletedLinesInOriginal = new ArrayList<>();
+            // 第四个数组：revised 代码中新插入的行的行号
+            List<Integer> insertedLinesInRevised = new ArrayList<>();
+
+            // 遍历所有的 Delta
+            for (AbstractDelta<String> delta : patch.getDeltas()) {
+                DeltaType deltaType = delta.getType();
+
+                // 处理 CHANGE 类型
+                if (deltaType == DeltaType.CHANGE) {
+                    // 获取 original 中的行号 (Source)
+                    int originalPosition = delta.getSource().getPosition();
+                    int originalSize = delta.getSource().size();
+                    for (int i = 0; i < originalSize; i++) {
+                        changeLinesInOriginal.add(originalPosition + i);
+                    }
+
+                    // 获取 revised 中的行号 (Target)
+                    int revisedPosition = delta.getTarget().getPosition();
+                    int revisedSize = delta.getTarget().size();
+                    for (int i = 0; i < revisedSize; i++) {
+                        changeLinesInRevised.add(revisedPosition + i);
+                    }
+                }
+
+                // 处理 DELETE 类型（对应 original 中的删除行）
+                if (deltaType == DeltaType.DELETE) {
+                    int originalPosition = delta.getSource().getPosition();
+                    int originalSize = delta.getSource().size();
+                    for (int i = 0; i < originalSize; i++) {
+                        deletedLinesInOriginal.add(originalPosition + i);
+                    }
+                }
+
+                // 处理 INSERT 类型（对应 revised 中的新增行）
+                if (deltaType == DeltaType.INSERT) {
+                    int revisedPosition = delta.getTarget().getPosition();
+                    int revisedSize = delta.getTarget().size();
+                    for (int i = 0; i < revisedSize; i++) {
+                        insertedLinesInRevised.add(revisedPosition + i);
+                    }
+                }
+            }
+
+            // 输出结果
+            System.out.println("CHANGE 类型的行在 original 代码中的行号: " + changeLinesInOriginal);
+            System.out.println("CHANGE 类型的行在 revised 代码中的行号: " + changeLinesInRevised);
+            System.out.println("original 代码中被删除的行的行号: " + deletedLinesInOriginal);
+            System.out.println("revised 代码中新插入的行的行号: " + insertedLinesInRevised);
+
+            // 标亮颜色
+            Color blueColor = new Color(0, 34, 252, 100);
+            Color orangeColor = new Color(252, 67, 0, 100);
+            Highlighter.HighlightPainter bluePainter = new DefaultHighlighter.DefaultHighlightPainter(blueColor);
+            Highlighter.HighlightPainter orangePainter = new DefaultHighlighter.DefaultHighlightPainter(orangeColor);
+
+            // 遍历行号数组，并为每一行添加高亮
+            for (int line : changeLinesInOriginal) {
+                try {
+                    // 获取每行的起始和结束偏移量
+                    int start = textArea.getLineStartOffset(line);  // 获取行的开始偏移量
+                    int end = textArea.getLineStartOffset(line+1);      // 获取行的结束偏移量
+
+                    // 为指定行添加高亮
+                    versionHighlighter.addHighlight(start, end, orangePainter);
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            for (int line : deletedLinesInOriginal) {
+                try {
+                    // 获取每行的起始和结束偏移量
+                    int start = textArea.getLineStartOffset(line);  // 获取行的开始偏移量
+                    int end = textArea.getLineStartOffset(line+1);      // 获取行的结束偏移量
+
+                    // 为指定行添加高亮
+                    versionHighlighter.addHighlight(start, end, orangePainter);
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            for (int line : changeLinesInRevised) {
+                try {
+                    // 获取每行的起始和结束偏移量
+                    int start = textArea2.getLineStartOffset(line);  // 获取行的开始偏移量
+                    int end = textArea2.getLineStartOffset(line+1);      // 获取行的结束偏移量
+
+                    // 为指定行添加高亮
+                    curHighlighter.addHighlight(start, end, bluePainter);
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            for (int line : insertedLinesInRevised) {
+                try {
+                    // 获取每行的起始和结束偏移量
+                    int start = textArea2.getLineStartOffset(line);  // 获取行的开始偏移量
+                    int end = textArea2.getLineStartOffset(line+1);      // 获取行的结束偏移量
+
+                    // 为指定行添加高亮
+                    curHighlighter.addHighlight(start, end, bluePainter);
+                } catch (BadLocationException ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+        });
+
+
         // 返回整个面板
         return backgroundPanel;
     }
@@ -206,7 +351,14 @@ public class ShowDiffDialog extends DialogWrapper {
         });
 
         btnRollBack.addActionListener(e -> {
-            // TODO 回退到当前选择的版本
+            if (curSelectedIndex != -1) {
+                // TODO 回退到当前选择的版本
+                String code = versionList[curSelectedIndex].getCode();
+
+            }
+            else{
+                MessageOutput.TakeMessage("当前还未选择回退版本");
+            }
         });
 
         panel.add(btnRollBack);
