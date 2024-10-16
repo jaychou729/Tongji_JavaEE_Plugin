@@ -138,6 +138,7 @@ public class ShowDiffDialog extends DialogWrapper {
 
 
         panel2.add(vensionCodePanel,BorderLayout.CENTER);
+        panel2.setPreferredSize(new Dimension(500,500));
         backgroundPanel.add(panel2,gbc);
 
 
