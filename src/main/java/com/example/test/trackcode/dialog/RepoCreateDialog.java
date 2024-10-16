@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 
 // TODO 将这个弹窗的关闭按钮去掉
@@ -123,24 +124,36 @@ public class RepoCreateDialog extends DialogWrapper {
                     PersistentStorage.getInstance().setUsername(tfUserName.getText());
                     PersistentStorage.getInstance().setPassword(tfPassWord.getText());
                     PersistentStorage.getInstance().setToken(tfToken.getText());
-                    PersistentStorage.getInstance().setUrl("https://github.com/"+tfUserName.getText()+"/"+tfRepoName.getText()+".git");
-                    PersistentStorage.getInstance().setRepoName_Owner("https://github.com/"+tfUserName.getText()+"/"+tfRepoName.getText()+".git");
+                    PersistentStorage.getInstance().setUrl("https://github.com/"+tfUserName.getText()+"/"+tfRepoName.getText());
+                    PersistentStorage.getInstance().setRepoName_Owner("https://github.com/"+tfUserName.getText()+"/"+tfRepoName.getText());
                     try {
+                        // 保存数据到文件
                         PersistentStorage.getInstance().saveToFile();
                         MessageOutput.TakeMessage("数据存储成功");
 
                         // 创建新的远程仓库
                         try {
-                            GitHubRepositoryCreator.createGitHubRepo(tfRepoName.getText(),tfDescription.getText(),btnIsPrivate.isSelected(),tfToken.getText());
+                            GitHubRepositoryCreator.createGitHubRepo(tfRepoName.getText(), tfDescription.getText(), btnIsPrivate.isSelected(), tfToken.getText());
 
-                            // 初始化仓库
-                            try{
+                            // 初始化仓库并推送
+                            try {
                                 gitMethod.InitRepo();
                                 MessageOutput.TakeMessage("推送远程仓库成功");
                                 this.close(OK_EXIT_CODE);
-                            }catch (GitAPIException | IOException ex) {
+
+                                // 在仓库推送成功后，异步创建分支
+                                CompletableFuture.runAsync(() -> {
+                                    try {
+                                        gitMethod.createBranch();
+                                        MessageOutput.TakeMessage("分支创建成功");
+                                    } catch (IOException ex) {
+                                        MessageOutput.TakeMessage("分支创建失败");
+                                        ex.printStackTrace();
+                                    }
+                                });
+                            } catch (GitAPIException | IOException ex) {
                                 System.out.println("error");
-                                MessageOutput.TakeMessage("仓库以创建，请尝试推送");
+                                MessageOutput.TakeMessage("仓库已创建，请尝试推送");
                                 this.close(OK_EXIT_CODE);
                                 GitBondDialog gitBondDialog = new GitBondDialog();
                                 gitBondDialog.show();

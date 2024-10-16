@@ -1,5 +1,8 @@
 package com.example.test.trackcode.network;
 
+import com.example.test.trackcode.jgit.gitMethod;
+import com.example.test.trackcode.storage.PersistentStorage;
+
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -25,9 +28,12 @@ public class GitHubRepositoryCreator {
         con.setRequestProperty("Content-Type", "application/json");
 
         // 创建请求体
-        String jsonInputString = "{ \"name\": \"" + repoName + "\", " +
+        String jsonInputString = "{ " +
+                "\"name\": \"" + repoName + "\", " +
                 "\"description\": \"" + description + "\", " +
-                "\"private\": " + isPrivate + " }";
+                "\"private\": " + isPrivate + ", " +
+                "\"auto_init\": true " +  // 自动初始化仓库，创建 main 分支并添加 README 文件
+                "}";
 
         // 启用发送请求体
         con.setDoOutput(true);
@@ -40,6 +46,7 @@ public class GitHubRepositoryCreator {
         int responseCode = con.getResponseCode();
         System.out.println("POST Response Code :: " + responseCode);
         if (responseCode == HttpURLConnection.HTTP_CREATED) {
+            gitMethod.addGitignoreFile(PersistentStorage.getInstance().getUsername(),repoName,token);
             System.out.println("Repository created successfully.");
         } else {
             System.out.println("Failed to create repository.");

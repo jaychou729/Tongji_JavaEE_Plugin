@@ -40,45 +40,124 @@ import static org.apache.tools.ant.types.resources.MultiRootFileSet.SetType.file
 
 public class gitMethod {
     // 本地仓库初始化并初始化远程仓库
+
     public static void InitRepo() throws GitAPIException, IOException {
         try {
-            // 获取当前文件夹位置
-            String localPathStr = ProjectManager.getInstance().getOpenProjects()[0].getBasePath();
+            // 获取项目的基础路径
+            String projectBasePath = ProjectManager.getInstance().getOpenProjects()[0].getBasePath();
 
-            // 定义本地项目路径
-            File localPath = new File(localPathStr);
+            // 从持久化存储中获取用户名、密码和令牌
+            String userName = PersistentStorage.getInstance().getUsername();
+            String password = PersistentStorage.getInstance().getPassword();
+            String token = PersistentStorage.getInstance().getToken();
+            String url = PersistentStorage.getInstance().getUrl()+".git";
 
-            // 初始化本地仓库
-            Git git = Git.init().setDirectory(localPath).call();
-            System.out.println("Initialized local repository.");
+            // 初始化本地 Git 仓库
+            Git git = Git.init().setDirectory(new File(projectBasePath)).call();
+            System.out.println("Initialized local Git repository");
 
-            // 添加文件并提交
-            git.add().addFilepattern(".").call();
-            git.commit().setMessage("Initial commit").call();
-            System.out.println("Files added and committed.");
-
-            // 添加远程仓库地址
-            git.remoteAdd().setName("origin").setUri(new URIish(PersistentStorage.getInstance().getUrl())).call();
-            System.out.println("Remote repository added.");
-
-            // 检查是否存在 main 分支，如果没有则创建
-            if (git.getRepository().findRef("refs/heads/main") == null) {
-                // 本地不存在 main 分支，创建分支
-                git.branchCreate().setName("main").call();
-                System.out.println("创建 main 分支");
+            // 创建或更新 .gitignore 文件
+            File gitignoreFile = new File(projectBasePath, ".gitignore");
+            if (!gitignoreFile.exists()) {
+                gitignoreFile.createNewFile();
             }
 
+            // 添加 PersistentStorage.xml 到 .gitignore 中
+            List<String> lines = Files.readAllLines(gitignoreFile.toPath(), StandardCharsets.UTF_8);
+            if (!lines.contains("PersistentStorage.xml")) {
+                lines.add("PersistentStorage.xml");
+                Files.write(gitignoreFile.toPath(), lines, StandardCharsets.UTF_8);
+            }
+
+            // 添加所有文件并提交，确保至少有一次提交
+            git.add().addFilepattern(".").call();
+            git.commit().setMessage("Initial commit").call();
+            System.out.println("Initial commit created.");
+
+            // 检查并创建 main 分支
+            if (git.getRepository().findRef("refs/heads/main") == null) {
+                git.branchCreate().setName("main").call();
+                System.out.println("Main branch created.");
+            }
+
+            // 切换到 main 分支
+            git.checkout().setName("main").call();
+            System.out.println("Switched to main branch.");
+
+            // 删除本地 master 分支
+            if (git.getRepository().findRef("refs/heads/master") != null) {
+                git.branchDelete().setBranchNames("master").setForce(true).call();
+                System.out.println("Deleted local master branch.");
+            }
+
+
+            // 添加远程仓库 URL
+            StoredConfig config = git.getRepository().getConfig();
+            config.setString("remote", "origin", "url", url);
+            config.save();
+            System.out.println("Remote repository set to: " + url);
+
             // 推送到远程仓库
+            UsernamePasswordCredentialsProvider provider =
+                    new UsernamePasswordCredentialsProvider(userName, token);
             git.push()
-                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(PersistentStorage.getInstance().getUsername(), PersistentStorage.getInstance().getToken()))
                     .setRemote("origin")
-                    .setRefSpecs(new RefSpec("refs/heads/main:refs/heads/main"))
+                    .setCredentialsProvider(provider)
+                    .setRefSpecs(new RefSpec("refs/heads/main:refs/heads/main")) // 推送到远程的 main 分支
+                    .setForce(true)  // 强制推送
                     .call();
             System.out.println("Pushed to remote repository.");
         } catch (Exception e) {
             e.printStackTrace();
+            throw e;  // 将异常重新抛出以便调试
         }
     }
+
+    public static void addGitignoreFile(String userName,String repoName, String token) throws Exception {
+
+        String url = "https://api.github.com/repos/"+userName+"/" + repoName + "/contents/.gitignore";
+        URL obj = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        // 设置请求方法为 PUT
+        con.setRequestMethod("PUT");
+
+        // 设置请求头
+        con.setRequestProperty("Authorization", "Bearer " + token);
+        con.setRequestProperty("Accept", "application/vnd.github.v3+json");
+        con.setRequestProperty("Content-Type", "application/json");
+
+        // 自定义的 .gitignore 内容
+        String gitignoreContent = "PersistentStorage.xml\n";
+
+        // 将内容进行 base64 编码，因为 GitHub API 需要使用 base64 编码的内容
+        String encodedContent = Base64.getEncoder().encodeToString(gitignoreContent.getBytes());
+
+        // 创建请求体，提交到 GitHub
+        String jsonInputString = "{ " +
+                "\"message\": \"Add custom .gitignore\", " +
+                "\"content\": \"" + encodedContent + "\"" +
+                "}";
+
+        // 启用发送请求体
+        con.setDoOutput(true);
+        try (OutputStream os = con.getOutputStream()) {
+            byte[] input = jsonInputString.getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+
+        // 处理响应
+        int responseCode = con.getResponseCode();
+        System.out.println("PUT Response Code :: " + responseCode);
+        if (responseCode == HttpURLConnection.HTTP_CREATED) {
+            System.out.println(".gitignore file created successfully.");
+        } else {
+            System.out.println("Failed to create .gitignore file.");
+        }
+    }
+
+
+
 
     // 项目克隆操作
     public static void CloneRepo() throws GitAPIException, IOException {
@@ -158,11 +237,14 @@ public class gitMethod {
     public static void createBranch() throws IOException {
         String sha = null;
         String branchName = "Version";  // 目标分支名称
+        isRepoExists(PersistentStorage.getInstance().getOwner(),
+                PersistentStorage.getInstance().getRepoName(),
+                PersistentStorage.getInstance().getToken());
 
         // Step 1: 获取主分支的 SHA 值
         String getShaUrl = "https://api.github.com/repos/" + PersistentStorage.getInstance().getOwner() + "/" +
                 PersistentStorage.getInstance().getRepoName() + "/git/refs/heads/main";  // 主分支
-
+        System.out.println(getShaUrl);
         URL url = new URL(getShaUrl);
         HttpURLConnection getConn = (HttpURLConnection) url.openConnection();
         getConn.setRequestMethod("GET");
@@ -229,6 +311,41 @@ public class gitMethod {
 
         // Step 4: 删除目标分支上的所有文件
         deleteAllFilesInBranch();
+    }
+
+    public static boolean isRepoExists(String owner, String repoName, String token) {
+        try {
+            // 构建 GitHub API URL
+            String apiUrl = "https://api.github.com/repos/" + owner + "/" + repoName;
+
+            // 创建 URL 对象
+            URL url = new URL(apiUrl);
+
+            // 打开连接
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            // 设置 GitHub Token 请求头
+            connection.setRequestProperty("Authorization", "token " + token);
+
+            // 获取响应码
+            int responseCode = connection.getResponseCode();
+
+            // 200 表示仓库存在
+            if (responseCode == 200) {
+                System.out.println("Repository exists.");
+                return true;
+            } else if (responseCode == 404) {
+                System.out.println("Repository not found.");
+                return false;
+            } else {
+                System.out.println("Failed to check repository. Response Code: " + responseCode);
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 
@@ -454,12 +571,6 @@ public class gitMethod {
 
 
 
-    public static boolean isValidBase64(String base64) {
-        String base64Pattern = "^[A-Za-z0-9+/=]+$";
-        return base64.matches(base64Pattern);
-    }
-
-
     public static List<CodeVersion> fetchFilesFromGitHubFolder(String owner, String repo, String branch, String folderPath, String token) throws IOException {
         // GitHub API URL，用于获取文件夹中的内容
         String url = String.format("https://api.github.com/repos/%s/%s/contents/%s?ref=%s", owner, repo, folderPath, branch);
@@ -507,16 +618,16 @@ public class gitMethod {
             }
         }
 
-        // 按照日期和时间进行排序
+        // 按照日期和时间从后往前进行排序
         Collections.sort(versions, new Comparator<CodeVersion>() {
             @Override
             public int compare(CodeVersion v1, CodeVersion v2) {
                 String dateTime1 = v1.getDate() + " " + v1.getTime();
                 String dateTime2 = v2.getDate() + " " + v2.getTime();
-                return dateTime1.compareTo(dateTime2);  // 先按日期再按时间排序
+                // 改为反向排序，即让最近的时间点排在最前面
+                return dateTime2.compareTo(dateTime1);  // 日期时间的反向比较
             }
         });
-
         return versions;
     }
 
