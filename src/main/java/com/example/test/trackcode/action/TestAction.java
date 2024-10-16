@@ -20,7 +20,7 @@ public class TestAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        Project project=e.getProject();
+        Project project = e.getProject();
 
 
         ApplicationManager.getApplication().invokeLater(() -> {
@@ -43,7 +43,7 @@ public class TestAction extends AnAction {
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-            ShowDiffDialog showDiffDialog = new ShowDiffDialog(fileName,versions,versions.get(0).getCode());
+            ShowDiffDialog showDiffDialog = new ShowDiffDialog(project,fileName,versions,versions.get(0).getCode());
             showDiffDialog.show();
         });
     }

@@ -8,7 +8,12 @@ import com.github.difflib.algorithm.DiffException;
 import com.github.difflib.patch.AbstractDelta;
 import com.github.difflib.patch.DeltaType;
 import com.github.difflib.patch.Patch;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.vfs.VirtualFile;
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -31,14 +36,16 @@ public class ShowDiffDialog extends DialogWrapper {
     String curCode;
     CodeVersion[] versionList;
     int curSelectedIndex = -1;      // 初始情况下 -1 表示没有任何选择
+    Project project;
 
-    public ShowDiffDialog(String fn, List<CodeVersion> vl, String cc) {
+    public ShowDiffDialog(Project pj, String fn, List<CodeVersion> vl, String cc) {
         super(true);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.setSize((int)(screenSize.width*0.8), (int)(screenSize.height*0.8));
         this.setTitle("versions of " + fn);
         curCode = cc;
         versionList = vl.toArray(new CodeVersion[0]);
+        project = pj;
         init();
     }
 
@@ -353,8 +360,20 @@ public class ShowDiffDialog extends DialogWrapper {
         btnRollBack.addActionListener(e -> {
             if (curSelectedIndex != -1) {
                 // TODO 回退到当前选择的版本
-                String code = versionList[curSelectedIndex].getCode();
+                String newCode = versionList[curSelectedIndex].getCode();
+                // 获取当前打开的文件
+                VirtualFile currentFile = FileEditorManager.getInstance(project).getSelectedFiles()[0];
+                if (currentFile != null) {
+                    Document document = FileEditorManager.getInstance(project).getSelectedTextEditor().getDocument();
 
+                    // 启动写入操作，覆盖文件内容
+                    WriteCommandAction.runWriteCommandAction(project, () -> {
+                        document.setText(newCode);
+                    });
+                } else {
+                    System.out.println("No file is currently selected.");
+                }
+                this.close(OK_EXIT_CODE);
             }
             else{
                 MessageOutput.TakeMessage("当前还未选择回退版本");
