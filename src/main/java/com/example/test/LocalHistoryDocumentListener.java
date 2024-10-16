@@ -37,7 +37,7 @@ public class LocalHistoryDocumentListener implements DocumentListener {
 
     private final Project project;
     private static final Logger logger = Logger.getInstance(LocalHistoryDocumentListener.class);
-    private static final long SAVE_DELAY = 5000; // 延迟1秒保存，减少输入法中间状态的捕获
+    private static final long SAVE_DELAY = 3000; // 延迟1秒保存，减少输入法中间状态的捕获
     private Timer timer;
     public static final Key<LocalHistoryDocumentListener> KEY = new Key<>("LocalHistoryInputMethodListener");
 
