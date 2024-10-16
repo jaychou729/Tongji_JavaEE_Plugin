@@ -30,6 +30,7 @@ import org.eclipse.jgit.api.Git;
 import com.github.difflib.DiffUtils;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 
 public class LocalHistoryDocumentListener implements DocumentListener {
@@ -138,14 +139,39 @@ public class LocalHistoryDocumentListener implements DocumentListener {
                 PersistentStorage.getInstance().getToken()
                 )){
 
-            gitMethod.commitFile(FileName,FolderName,file);
+            CompletableFuture<Void> commitFuture = CompletableFuture.runAsync(() -> {
+                try {
+                    gitMethod.commitFile(FileName, FolderName, file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+            CompletableFuture<Void> allTasks = commitFuture.thenRunAsync(() -> {
+                deleteFile(filePath);
+            });
+
+            // 等待任务完成
+            allTasks.join();
 
         }
         else{
-            gitMethod.createFolder(FolderName);
-            gitMethod.commitFile(FileName,FolderName,file);
-        }
+            CompletableFuture<Void> commitFuture = CompletableFuture.runAsync(() -> {
+                try {
+                    gitMethod.createFolder(FolderName);
+                    gitMethod.commitFile(FileName,FolderName,file);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
 
+            CompletableFuture<Void> allTasks = commitFuture.thenRunAsync(() -> {
+                deleteFile(filePath);
+            });
+
+            // 等待任务完成
+            allTasks.join();
+        }
     }
 
     public static String getRelativePath(Project project) {
@@ -167,6 +193,23 @@ public class LocalHistoryDocumentListener implements DocumentListener {
             return null; // 如果文件不在项目根目录下
         }
     }
+
+    public static void deleteFile(String filePath){
+        File file = new File(filePath);
+
+        // 检查文件是否存在
+        if (file.exists()) {
+            // 删除文件
+            if (file.delete()) {
+                System.out.println("File deleted: " + filePath);
+            } else {
+                System.out.println("File deletion failed: " + filePath);
+            }
+        } else {
+            System.out.println("File doesn't exist: " + filePath);
+        }
+    }
+
 
 
 
