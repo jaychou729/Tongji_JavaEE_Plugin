@@ -8,8 +8,8 @@ import com.intellij.openapi.diagnostic.Logger;
 
 import java.io.IOException;
 
-public class MyFirstAction extends AnAction {
-    private static final Logger logger = Logger.getInstance(MyFirstAction.class);
+public class CommitAction extends AnAction {
+    private static final Logger logger = Logger.getInstance(CommitAction.class);
 
     @Override
     public void actionPerformed(AnActionEvent e) {

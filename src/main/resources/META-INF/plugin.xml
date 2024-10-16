@@ -1,12 +1,12 @@
 <idea-plugin>
-    <id>com.example.lmz</id>
+    <id>com.example.tongji.trackcode.id</id>
     <name>Test</name>
-    <vendor email="support@yourcompany.com" url="https://www.yourcompany.com">YourCompany</vendor>
+    <vendor email="null" url="null">java-tongji</vendor>
 
 
     <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
+    该插件是一个适用于IDEA平台的版本控制工具<br>
+    <em>主要功能有绑定远程仓库、细粒度追踪并保存代码、查看各个版本的代码及其差异、代码回退、代码提交等</em>
   ]]></description>
 
 
@@ -20,18 +20,19 @@
 
 
     <actions>
-        <action id="MyFirstAction.id" class="com.example.test.MyFirstAction" text="第一个操作" description="嗷嗷嗷">
+        <action id="tongji.trackcode.commitaction.id" class="com.example.test.trackcode.action.CommitAction" text="提交到GitHub" description="将当前项目提交到GitHub">
             <add-to-group group-id="MainToolBar" anchor="last"/>
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl F11" second-keystroke="ctrl F12"/>
         </action>
-        <action id="com.lycmoons.trackcode.rebond.id" class="com.example.test.trackcode.action.ReBondRepo"
+        <action id="tongji.trackcode.rebondrepoaction.id" class="com.example.test.trackcode.action.ReBondRepoAction"
                 text="仓库重绑" description="重新绑定远程仓库">
             <add-to-group group-id="MainToolBar" anchor="last"/>
-            <keyboard-shortcut keymap="$default" first-keystroke="meta 0"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl 0"/>
         </action>
-        <action id="lycmoons.testaction.id" class="com.example.test.trackcode.action.TestAction" text="测试"
-                description="用于测试显示窗口">
-            <keyboard-shortcut keymap="$default" first-keystroke="meta 9"/>
+        <action id="tongji.trackcode.showdiffaction.id" class="com.example.test.trackcode.action.ShowDiffAction" text="版本控制界面"
+                description="用于显示版本控制界面">
+            <add-to-group group-id="MainToolBar" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl 9"/>
         </action>
     </actions>
 </idea-plugin>

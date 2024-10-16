@@ -15,7 +15,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.util.List;
 
-public class TestAction extends AnAction {
+public class ShowDiffAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
