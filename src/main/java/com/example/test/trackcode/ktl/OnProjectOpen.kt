@@ -1,5 +1,6 @@
 package com.example.test.trackcode.ktl
 
+import com.example.test.MyApplicationComponent
 import com.example.test.trackcode.dialog.GitBondDialog
 import com.example.test.trackcode.storage.PersistentStorage
 import com.intellij.openapi.application.ApplicationManager
@@ -21,13 +22,15 @@ class OnProjectOpen : ProjectActivity {
                 val dialog = GitBondDialog()
                 dialog.show()
             }
-        } else {
-            if ("" == username || "" == password || "" == token || "" == url) {
+        } else if ("" == username || "" == password || "" == token || "" == url){
                 ApplicationManager.getApplication().invokeLater {
                     val dialog = GitBondDialog()
                     dialog.show()
                 }
-            }
+        }
+        else{
+            val myapp = MyApplicationComponent(project)
+            myapp.initComponent()
         }
     }
 }
