@@ -1,4 +1,4 @@
-package com.example.test;
+package com.example.test.trackcode.listener;
 
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.editor.Document;
@@ -10,7 +10,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import org.jetbrains.annotations.NotNull;
-import java.awt.event.InputMethodListener;
 
 public class MyApplicationComponent implements ApplicationComponent {
 

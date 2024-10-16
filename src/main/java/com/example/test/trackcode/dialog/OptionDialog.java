@@ -1,10 +1,9 @@
 package com.example.test.trackcode.dialog;
 
 
-import com.example.test.MyApplicationComponent;
+import com.example.test.trackcode.listener.MyApplicationComponent;
 import com.example.test.trackcode.jgit.gitMethod;
 import com.example.test.trackcode.message.MessageOutput;
-import com.example.test.trackcode.storage.PersistentStorage;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;

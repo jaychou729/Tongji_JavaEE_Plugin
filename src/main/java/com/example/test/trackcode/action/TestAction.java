@@ -1,6 +1,6 @@
 package com.example.test.trackcode.action;
 
-import com.example.test.LocalHistoryDocumentListener;
+import com.example.test.trackcode.listener.LocalHistoryDocumentListener;
 import com.example.test.trackcode.datastruct.CodeVersion;
 import com.example.test.trackcode.dialog.ShowDiffDialog;
 import com.example.test.trackcode.jgit.gitMethod;
@@ -13,7 +13,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TestAction extends AnAction {

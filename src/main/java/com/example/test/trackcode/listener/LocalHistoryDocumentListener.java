@@ -1,4 +1,4 @@
-package com.example.test;
+package com.example.test.trackcode.listener;
 
 import com.example.test.trackcode.jgit.gitMethod;
 import com.example.test.trackcode.storage.PersistentStorage;
@@ -25,11 +25,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.time.LocalDateTime;
 
-import org.eclipse.jgit.api.Git;
-
-import com.github.difflib.DiffUtils;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 

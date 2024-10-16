@@ -34,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.net.URI;
+import org.eclipse.jgit.api.Git;
 
 import static org.apache.commons.io.file.PathUtils.deleteFile;
 import static org.apache.tools.ant.types.resources.MultiRootFileSet.SetType.file;
@@ -651,7 +652,43 @@ public class gitMethod {
         return null;
     }
 
+    public static void commitAndPushChanges() throws IOException {
+        String projectBasePath = ProjectManager.getInstance().getOpenProjects()[0].getBasePath();
+        File localRepoPath = new File(projectBasePath);
+        String username=PersistentStorage.getInstance().getUsername();
+        String token=PersistentStorage.getInstance().getToken();
+        Git git=Git.open(localRepoPath);
+        try {
+            // 添加所有更改文件
+            git.add().addFilepattern(".").call();
+            System.out.println("All changes added to the staging area.");
+
+            // 提交更改
+            git.commit().setMessage("update").call();
+            //System.out.println("Changes committed with message: " + commitMessage);
+
+            // 推送到远程 main 分支
+            UsernamePasswordCredentialsProvider credentialsProvider =
+                    new UsernamePasswordCredentialsProvider(username, token);
+            git.push()
+                    .setRemote("origin")
+                    .setCredentialsProvider(credentialsProvider)
+                    .setRefSpecs(new RefSpec("refs/heads/main:refs/heads/main")) // 推送到 main 分支
+                    .call();
+            System.out.println("Changes pushed to the remote main branch.");
+
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+            System.err.println("Failed to commit or push changes.");
+        }
+    }
+
+
 }
+
+
+
+
 
 
 

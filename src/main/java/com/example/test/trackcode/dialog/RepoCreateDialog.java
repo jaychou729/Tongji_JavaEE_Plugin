@@ -1,6 +1,6 @@
 package com.example.test.trackcode.dialog;
 
-import com.example.test.MyApplicationComponent;
+import com.example.test.trackcode.listener.MyApplicationComponent;
 import com.example.test.trackcode.jgit.gitMethod;
 import com.example.test.trackcode.message.MessageOutput;
 import com.example.test.trackcode.network.GitHubRepositoryCreator;

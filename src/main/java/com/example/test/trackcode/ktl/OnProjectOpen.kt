@@ -1,6 +1,6 @@
 package com.example.test.trackcode.ktl
 
-import com.example.test.MyApplicationComponent
+import com.example.test.trackcode.listener.MyApplicationComponent
 import com.example.test.trackcode.dialog.GitBondDialog
 import com.example.test.trackcode.storage.PersistentStorage
 import com.intellij.openapi.application.ApplicationManager
