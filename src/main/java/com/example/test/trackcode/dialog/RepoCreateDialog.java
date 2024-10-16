@@ -1,9 +1,12 @@
 package com.example.test.trackcode.dialog;
 
+import com.example.test.MyApplicationComponent;
 import com.example.test.trackcode.jgit.gitMethod;
 import com.example.test.trackcode.message.MessageOutput;
 import com.example.test.trackcode.network.GitHubRepositoryCreator;
 import com.example.test.trackcode.storage.PersistentStorage;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jetbrains.annotations.Nullable;
@@ -23,12 +26,15 @@ public class RepoCreateDialog extends DialogWrapper {
     private JTextField tfRepoName;
     private JTextField tfDescription;
     private JRadioButton btnIsPrivate;
+    private final Project project;
 
     public RepoCreateDialog() {
         super(true); // 模态对话框
         init();
         setTitle("新建远程仓库");
         setSize(600,300);
+        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+        this.project = openProjects.length > 0 ? openProjects[0] : null; // 选择第一个打开的项目
     }
 
     @Nullable
@@ -165,7 +171,10 @@ public class RepoCreateDialog extends DialogWrapper {
                     } catch (IOException E) {
                         E.printStackTrace();
                         MessageOutput.TakeMessage("数据存储失败，请重新输入");
+
                     }
+                    MyApplicationComponent myapp = new MyApplicationComponent(project);
+                    myapp.initComponent();
                 }
             }
         });

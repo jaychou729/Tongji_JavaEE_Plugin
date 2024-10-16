@@ -8,6 +8,9 @@ import com.example.test.trackcode.storage.PersistentStorage;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,6 +20,7 @@ public class TestAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
+        Project project=e.getProject();
 
 
         ApplicationManager.getApplication().invokeLater(() -> {
@@ -31,13 +35,15 @@ public class TestAction extends AnAction {
             String branch="Version";
             String folderPath= LocalHistoryDocumentListener.getRelativePath(e.getProject());
             String token=PersistentStorage.getInstance().getToken();
+            VirtualFile currentFile = FileEditorManager.getInstance(project).getSelectedEditor().getFile();
+            String fileName = currentFile.getName();
             List<CodeVersion> versions= null;
             try {
                 versions = gitMethod.fetchFilesFromGitHubFolder(owner,repo,branch,folderPath,token);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
-            ShowDiffDialog showDiffDialog = new ShowDiffDialog("Main.java",versions,versions.get(0).getCode());
+            ShowDiffDialog showDiffDialog = new ShowDiffDialog(fileName,versions,versions.get(0).getCode());
             showDiffDialog.show();
         });
     }

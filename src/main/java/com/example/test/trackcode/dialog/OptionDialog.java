@@ -1,10 +1,12 @@
 package com.example.test.trackcode.dialog;
 
 
+import com.example.test.MyApplicationComponent;
 import com.example.test.trackcode.jgit.gitMethod;
 import com.example.test.trackcode.message.MessageOutput;
 import com.example.test.trackcode.storage.PersistentStorage;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import groovyjarjarantlr4.v4.runtime.misc.Nullable;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -15,8 +17,11 @@ import java.io.IOException;
 
 // TODO 将这个弹窗的关闭按钮去掉
 public class OptionDialog extends DialogWrapper {
+    private final Project project;
     public OptionDialog() {
         super(true);
+        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+        this.project = openProjects.length > 0 ? openProjects[0] : null; // 选择第一个打开的项目
         init();
     }
 
@@ -49,6 +54,8 @@ public class OptionDialog extends DialogWrapper {
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
+            MyApplicationComponent myapp = new MyApplicationComponent(project);
+            myapp.initComponent();
         });
 
         panel.add(btnClone);
