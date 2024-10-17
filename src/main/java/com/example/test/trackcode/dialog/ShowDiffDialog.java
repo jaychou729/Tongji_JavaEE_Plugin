@@ -92,8 +92,8 @@ public class ShowDiffDialog extends DialogWrapper {
                 // 创建 JLabel 用于显示每行字符串
                 JLabel line1 = new JLabel(date); // 第一行
                 JLabel line2 = new JLabel(time); // 第二行
-                line1.setFont(new Font("Arial", Font.BOLD, 16)); // 设置第一行字体
-                line2.setFont(new Font("Arial", Font.PLAIN, 12)); // 设置第二行字体
+                line1.setFont(new Font("Arial", Font.BOLD, 20)); // 设置第一行字体
+                line2.setFont(new Font("Arial", Font.PLAIN, 16)); // 设置第二行字体
 
                 // 设置背景颜色，区分选中和未选中状态
                 if (isSelected) {
@@ -105,7 +105,7 @@ public class ShowDiffDialog extends DialogWrapper {
                 // 将两行添加到面板中
                 panel.add(line1, BorderLayout.NORTH); // 第一行在顶部
                 panel.add(line2, BorderLayout.SOUTH); // 第二行在底部
-
+                panel.setPreferredSize(new Dimension(100,50));
                 return panel; // 返回自定义的面板
             }
         };

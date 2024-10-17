@@ -11,7 +11,7 @@ import java.net.URL;
 // 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
 
 /*LMZ令牌*/
-// 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
+// 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
 
 public class GitHubRepositoryCreator {
     public static void createGitHubRepo(String repoName, String description, boolean isPrivate, String token) throws Exception {
