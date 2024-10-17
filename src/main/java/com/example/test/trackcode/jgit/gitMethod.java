@@ -838,7 +838,7 @@ public class gitMethod {
                             throw new RuntimeException("Error renaming folder", e);
                         }
                     });
-                    
+
 
                     System.out.println("All operations completed successfully.");
                 }
@@ -907,16 +907,6 @@ public class gitMethod {
 
         System.out.println("File deleted: " + filePath);
     }
-
-
-
-
-
-
-
-
-
-
 }
 
 
