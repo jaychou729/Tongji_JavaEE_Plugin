@@ -708,8 +708,6 @@ public class gitMethod {
                 owner, repo, oldPath, branch
         );
 
-        // 打印 API URL，检查是否正确
-        System.out.println("API URL: " + getUrl);
 
         HttpURLConnection getConnection = createConnection(getUrl, "GET", token);
         int getResponseCode = getConnection.getResponseCode();
@@ -872,8 +870,15 @@ public class gitMethod {
                 String fileName = fileObj.get("name").getAsString();
                 String oldFilePath = oldFolderPath + "/" + fileName;
 
-                // 删除旧文件夹中的文件
-                deleteFileOnGitHub(owner, repo, branch, oldFilePath, fileObj.get("sha").getAsString(), token);
+
+
+                if (isFileExists(owner, repo, branch, oldFilePath, token)) {
+                    // 删除旧文件夹中的文件
+                    deleteFileOnGitHub(owner, repo, branch, oldFilePath, fileObj.get("sha").getAsString(), token);
+                } else {
+                    System.out.println("File not found, skipping deletion: " + oldFilePath);
+                }
+
             }
 
             System.out.println("Folder renamed from '" + oldFolderPath + "' to '" + newFolderPath + "' successfully.");
@@ -887,6 +892,10 @@ public class gitMethod {
         String deleteUrl = String.format(
                 "https://api.github.com/repos/%s/%s/contents/%s",
                 owner, repo, filePath);
+
+        // 打印删除请求的 URL 和文件的 SHA 值，便于调试
+        System.out.println("API URL for deleting file: " + deleteUrl);
+        System.out.println("SHA of the file to delete: " + sha);
 
         JsonObject deleteRequest = new JsonObject();
         deleteRequest.addProperty("message", "Deleted old file: " + filePath);
@@ -902,11 +911,54 @@ public class gitMethod {
 
         int deleteResponseCode = deleteConnection.getResponseCode();
         if (deleteResponseCode != 200) {
-            throw new IOException("Failed to delete file: " + deleteResponseCode);
+            throw new IOException("Failed to delete file: " + deleteResponseCode + " - " + deleteConnection.getResponseMessage());
         }
 
         System.out.println("File deleted: " + filePath);
     }
+
+    public static boolean isFileExists(String owner, String repo, String branch, String filePath, String token) throws IOException {
+        String apiUrl = String.format(
+                "https://api.github.com/repos/%s/%s/contents/%s?ref=%s",
+                owner, repo, filePath, branch
+        );
+
+        HttpURLConnection connection = createConnection(apiUrl, "GET", token);
+        int responseCode = connection.getResponseCode();
+        return responseCode == 200;  // 返回 200 表示文件存在
+    }
+
+    public static void deleteFolderOnGitHub(String owner, String repo, String branch,
+                                            String folderPath, String token) throws IOException {
+        String apiUrl = String.format(
+                "https://api.github.com/repos/%s/%s/contents/%s?ref=%s",
+                owner, repo, folderPath, branch);
+
+        JsonArray files = getFilesFromGitHub(apiUrl, token);
+        if (files != null) {
+            for (JsonElement element : files) {
+                JsonObject fileObj = element.getAsJsonObject();
+                String fileName = fileObj.get("name").getAsString();
+                String filePath = folderPath + "/" + fileName;
+                String sha = fileObj.get("sha").getAsString();
+
+                // 如果是文件夹，递归删除
+                if (fileObj.get("type").getAsString().equals("dir")) {
+                    deleteFolderOnGitHub(owner, repo, branch, filePath, token);
+                } else {
+                    // 删除文件
+                    deleteFileOnGitHub(owner, repo, branch, filePath, sha, token);
+                }
+            }
+
+            // 删除文件夹中的 `.gitkeep` 或空文件
+            System.out.println("Folder deleted: " + folderPath);
+        } else {
+            System.out.println("Folder is empty or not found: " + folderPath);
+        }
+    }
+
+
 }
 
 

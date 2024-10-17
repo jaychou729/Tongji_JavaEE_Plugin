@@ -1,6 +1,7 @@
 package com.example.test.trackcode.listener;
 
 import com.example.test.trackcode.jgit.gitMethod;
+import com.example.test.trackcode.storage.PersistentStorage;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -69,6 +70,20 @@ public class MyApplicationComponent implements ApplicationComponent {
 
             @Override
             public void fileDeleted(@NotNull VirtualFileEvent event) {
+                String path = event.getFile().getPath();
+                String relativePath = path.replace(projectBasePath + "/", "");
+                String folderName=relativePath.replaceAll("[/.]", "_");
+                try {
+                    gitMethod.deleteFolderOnGitHub(
+                            PersistentStorage.getInstance().getOwner(),
+                            PersistentStorage.getInstance().getRepoName(),
+                            "Version",
+                            folderName,
+                            PersistentStorage.getInstance().getToken()
+                    );
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 System.out.println("File deleted: " + event.getFile().getPath());
             }
 
@@ -121,6 +136,25 @@ public class MyApplicationComponent implements ApplicationComponent {
                 System.out.println("File/Folder moved:");
                 System.out.println("Name: " + oldName);
                 System.out.println("Old Path: " + oldPath + ", New Path: " + newPath);
+
+                String relativeOldPath = oldPath.replace(projectBasePath + "/", "");
+                String relativeNewPath = newPath.replace(projectBasePath + "/", "");
+
+                String oldFolderName = relativeOldPath.replaceAll("[/.]", "_");
+                String newFolderName = relativeNewPath.replaceAll("[/.]", "_");
+
+                try {
+                    gitMethod.renameFolderOnGitHub(
+                            PersistentStorage.getInstance().getOwner(),
+                            PersistentStorage.getInstance().getRepoName(),
+                            "Version",
+                            oldFolderName,
+                            newFolderName,
+                            PersistentStorage.getInstance().getToken()
+                    );
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
         }, project);
