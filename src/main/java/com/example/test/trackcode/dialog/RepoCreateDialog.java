@@ -71,7 +71,7 @@ public class RepoCreateDialog extends DialogWrapper {
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.fill = GridBagConstraints.NONE;
-        panel.add(new JLabel("仓库令牌："), gbc);
+        panel.add(new JLabel("用户令牌："), gbc);
 
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
