@@ -1,5 +1,6 @@
 package com.example.test.trackcode.listener;
 
+import com.example.test.trackcode.jgit.gitMethod;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -9,7 +10,10 @@ import com.intellij.openapi.editor.event.EditorFactoryListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.vfs.*;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
 
 public class MyApplicationComponent implements ApplicationComponent {
 
@@ -56,6 +60,72 @@ public class MyApplicationComponent implements ApplicationComponent {
                 }
             }
         }, project);
+
+        VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileListener() {
+            @Override
+            public void fileCreated(@NotNull VirtualFileEvent event) {
+                System.out.println("File created: " + event.getFile().getPath());
+            }
+
+            @Override
+            public void fileDeleted(@NotNull VirtualFileEvent event) {
+                System.out.println("File deleted: " + event.getFile().getPath());
+            }
+
+            @Override
+            public void propertyChanged(@NotNull VirtualFilePropertyEvent event) {
+                // 检查是否是文件名的变更（重命名）
+                if (VirtualFile.PROP_NAME.equals(event.getPropertyName())) {
+                    String oldNameWithExt = (String) event.getOldValue();  // 原始名称（包含后缀）
+                    String newNameWithExt = (String) event.getNewValue();  // 新名称（包含后缀）
+
+                    // 移除文件后缀
+                    String oldName = oldNameWithExt.replaceFirst("\\.[^.]+$", "");
+                    String newName = newNameWithExt.replaceFirst("\\.[^.]+$", "");
+
+                    // 获取旧路径和新路径
+                    String oldPath = event.getFile().getParent().getPath() + "/" + oldNameWithExt;
+                    String newPath = event.getFile().getPath();
+
+                    System.out.println("File/Folder renamed:");
+                    System.out.println("Old Name: " + oldName + ", New Name: " + newName);
+                    System.out.println("Old Path: " + oldPath + ", New Path: " + newPath);
+
+                    // 获取相对路径
+                    String relativeOldPath = oldPath.replace(projectBasePath + "/", "");
+                    String relativeNewPath = newPath.replace(projectBasePath + "/", "");
+
+                    // 将路径转换为用于存储的格式
+                    String oldFolderName = relativeOldPath.replaceAll("[/.]", "_");
+
+                    // 调用 gitMethod 更新文件名
+                    try {
+                        gitMethod.updateFileName(oldFolderName, newName, oldName);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+
+
+            @Override
+            public void fileMoved(@NotNull VirtualFileMoveEvent event) {
+                // 移动前的名字和路径
+                String oldName = event.getFile().getName();  // 文件或文件夹名在移动过程中不变
+                String oldPath = event.getOldParent().getPath() + "/" + oldName;
+
+                // 移动后的名字和路径
+                String newName = event.getFile().getName();  // 名字保持不变，但路径发生改变
+                String newPath = event.getFile().getPath();
+
+                System.out.println("File/Folder moved:");
+                System.out.println("Name: " + oldName);
+                System.out.println("Old Path: " + oldPath + ", New Path: " + newPath);
+            }
+
+        }, project);
+
+
     }
 
     @Override

@@ -7,6 +7,10 @@ import com.example.test.trackcode.message.MessageOutput;
 import com.example.test.trackcode.storage.PersistentStorage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.ProjectManager;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -683,7 +687,226 @@ public class gitMethod {
         }
     }
 
+    public static JsonArray getFilesFromGitHub(String apiUrl, String token) throws IOException {
+        HttpURLConnection connection = createConnection(apiUrl, "GET", token);
+        int responseCode = connection.getResponseCode();
 
+        if (responseCode == 200) {
+            String response = new Scanner(connection.getInputStream()).useDelimiter("\\A").next();
+            return JsonParser.parseString(response).getAsJsonArray();
+        } else {
+            System.err.println("Failed to fetch files: " + responseCode);
+            return null;
+        }
+    }
+
+    public static void renameFileOnGitHub(String owner, String repo, String branch,
+                                          String oldPath, String newPath, String token) throws IOException {
+        // Step 1: 获取旧文件的 SHA
+        String getUrl = String.format(
+                "https://api.github.com/repos/%s/%s/contents/%s?ref=%s",
+                owner, repo, oldPath, branch
+        );
+
+        // 打印 API URL，检查是否正确
+        System.out.println("API URL: " + getUrl);
+
+        HttpURLConnection getConnection = createConnection(getUrl, "GET", token);
+        int getResponseCode = getConnection.getResponseCode();
+
+        if (getResponseCode != 200) {
+            throw new IOException("Failed to get file: " + getResponseCode);
+        }
+
+        // 读取响应，提取 SHA 和文件内容
+        JsonObject fileObject;
+        try (InputStream is = getConnection.getInputStream();
+             InputStreamReader reader = new InputStreamReader(is)) {
+            fileObject = JsonParser.parseReader(reader).getAsJsonObject();
+        }
+
+        // 检查 SHA 是否存在，防止 NullPointerException
+        if (!fileObject.has("sha")) {
+            throw new IOException("SHA not found in response. Check if the file exists.");
+        }
+
+        String sha = fileObject.get("sha").getAsString();
+        String content = fileObject.get("content").getAsString();
+
+        // Step 2: 创建新文件（重命名为新路径）
+        String createUrl = String.format(
+                "https://api.github.com/repos/%s/%s/contents/%s",
+                owner, repo, newPath
+        );
+
+        JsonObject createRequest = new JsonObject();
+        createRequest.addProperty("message", "Renamed " + oldPath + " to " + newPath);
+        createRequest.addProperty("content", content);
+        createRequest.addProperty("branch", branch);
+
+        HttpURLConnection createConnection = createConnection(createUrl, "PUT", token);
+        createConnection.setDoOutput(true);
+        try (OutputStream os = createConnection.getOutputStream()) {
+            byte[] input = createRequest.toString().getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+
+        int createResponseCode = createConnection.getResponseCode();
+        if (createResponseCode != 201) {
+            throw new IOException("Failed to create new file: " + createResponseCode);
+        }
+
+        // Step 3: 删除旧文件
+        String deleteUrl = String.format(
+                "https://api.github.com/repos/%s/%s/contents/%s",
+                owner, repo, oldPath
+        );
+
+        JsonObject deleteRequest = new JsonObject();
+        deleteRequest.addProperty("message", "Deleted old file: " + oldPath);
+        deleteRequest.addProperty("sha", sha);
+        deleteRequest.addProperty("branch", branch);
+
+        HttpURLConnection deleteConnection = createConnection(deleteUrl, "DELETE", token);
+        deleteConnection.setDoOutput(true);
+        try (OutputStream os = deleteConnection.getOutputStream()) {
+            byte[] input = deleteRequest.toString().getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+
+        int deleteResponseCode = deleteConnection.getResponseCode();
+        if (deleteResponseCode != 200) {
+            throw new IOException("Failed to delete old file: " + deleteResponseCode);
+        }
+
+        System.out.println("File renamed from '" + oldPath + "' to '" + newPath + "' successfully.");
+    }
+
+
+    private static HttpURLConnection createConnection(String url, String method, String token) throws IOException {
+        URL apiUrl = new URL(url);
+        HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
+        connection.setRequestMethod(method);
+        connection.setRequestProperty("Authorization", "token " + token);
+        connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
+        connection.setRequestProperty("Content-Type", "application/json");
+        return connection;
+    }
+
+    public static void updateFileName(String folderPath, String newName, String oldName) throws IOException {
+        String GITHUB_API = "https://api.github.com";
+        String OWNER = PersistentStorage.getInstance().getUsername();
+        String REPO = PersistentStorage.getInstance().getRepoName();
+        String TOKEN = PersistentStorage.getInstance().getToken();
+
+        String apiUrl = String.format(
+                "%s/repos/%s/%s/contents/%s?ref=%s",
+                GITHUB_API, OWNER, REPO, folderPath, "Version");
+
+        JsonArray files = getFilesFromGitHub(apiUrl, TOKEN);
+        if (files != null) {
+            for (JsonElement element : files) {
+                JsonObject fileObj = element.getAsJsonObject();
+                String name = fileObj.get("name").getAsString();
+                System.out.println(name);
+
+                if (name.endsWith(".txt") && name.contains(oldName)) {
+                    String renamedFile = name.replace(oldName, newName); // 替换 oldName 为 newName
+                    System.out.println("Renaming: " + name + " to " + renamedFile);
+                    String newFolderPath=folderPath.replace(oldName,newName);
+
+
+
+
+
+                    CompletableFuture<Void> renameFilesFuture = CompletableFuture.runAsync(() -> {
+                        try {
+                            // 调用 renameFileOnGitHub 执行重命名
+                            renameFileOnGitHub(OWNER, REPO, "Version",
+                                    folderPath + "/" + name, folderPath + "/" + renamedFile,TOKEN);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Error renaming files", e);
+                        }
+                    });
+
+                    // 第二个任务：等第一个任务完成后再重命名文件夹
+                    CompletableFuture<Void> renameFolderFuture = renameFilesFuture.thenRunAsync(() -> {
+                        try {
+                            renameFolderOnGitHub(OWNER, REPO, "Version",
+                                    folderPath,newFolderPath,TOKEN);
+                        } catch (IOException e) {
+                            throw new RuntimeException("Error renaming folder", e);
+                        }
+                    });
+
+
+                    System.out.println("All operations completed successfully.");
+                }
+            }
+        }
+    }
+
+    public static void renameFolderOnGitHub(String owner, String repo, String branch,
+                                            String oldFolderPath, String newFolderPath, String token) throws IOException {
+        // Step 1: 获取旧文件夹中的所有文件
+        String apiUrl = String.format(
+                "https://api.github.com/repos/%s/%s/contents/%s?ref=%s",
+                owner, repo, oldFolderPath, branch);
+
+        JsonArray files = getFilesFromGitHub(apiUrl, token);
+
+        if (files != null) {
+            for (JsonElement element : files) {
+                JsonObject fileObj = element.getAsJsonObject();
+                String fileName = fileObj.get("name").getAsString();
+                String oldFilePath = oldFolderPath + "/" + fileName;
+                String newFilePath = newFolderPath + "/" + fileName;
+
+                // Step 2: 重命名每个文件（移动到新文件夹路径）
+                renameFileOnGitHub(owner, repo, branch, oldFilePath, newFilePath, token);
+            }
+
+            // Step 3: 确保旧文件夹中的文件都被移动之后，删除旧文件夹的内容
+            for (JsonElement element : files) {
+                JsonObject fileObj = element.getAsJsonObject();
+                String fileName = fileObj.get("name").getAsString();
+                String oldFilePath = oldFolderPath + "/" + fileName;
+
+                // 删除旧文件夹中的文件
+                deleteFileOnGitHub(owner, repo, branch, oldFilePath, fileObj.get("sha").getAsString(), token);
+            }
+
+            System.out.println("Folder renamed from '" + oldFolderPath + "' to '" + newFolderPath + "' successfully.");
+        } else {
+            throw new IOException("Failed to fetch files from folder: " + oldFolderPath);
+        }
+    }
+
+    public static void deleteFileOnGitHub(String owner, String repo, String branch,
+                                          String filePath, String sha, String token) throws IOException {
+        String deleteUrl = String.format(
+                "https://api.github.com/repos/%s/%s/contents/%s",
+                owner, repo, filePath);
+
+        JsonObject deleteRequest = new JsonObject();
+        deleteRequest.addProperty("message", "Deleted old file: " + filePath);
+        deleteRequest.addProperty("sha", sha);
+        deleteRequest.addProperty("branch", branch);
+
+        HttpURLConnection deleteConnection = createConnection(deleteUrl, "DELETE", token);
+        deleteConnection.setDoOutput(true);
+        try (OutputStream os = deleteConnection.getOutputStream()) {
+            byte[] input = deleteRequest.toString().getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+
+        int deleteResponseCode = deleteConnection.getResponseCode();
+        if (deleteResponseCode != 200) {
+            throw new IOException("Failed to delete file: " + deleteResponseCode);
+        }
+
+        System.out.println("File deleted: " + filePath);
+    }
 }
 
 
