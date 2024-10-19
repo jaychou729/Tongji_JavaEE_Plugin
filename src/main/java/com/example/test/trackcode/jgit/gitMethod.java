@@ -453,7 +453,8 @@ public class gitMethod {
         String content = ""; // 空内容的 base64 编码结果是空字符串
 
         // 请求体，包含提交的文件路径、内容、提交消息和目标分支
-        String jsonPayload = String.format("{\"message\": \"%s\", \"content\": \"%s\", \"branch\": \"%s\"}", message, content, "Version");
+        String jsonPayload = String.format("{\"message\": \"%s\", \"content\": \"%s\", \"branch\": \"%s\"}",
+                message, content, "Version");
         conn.setDoOutput(true);
         try (OutputStream os = conn.getOutputStream()) {
             os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));

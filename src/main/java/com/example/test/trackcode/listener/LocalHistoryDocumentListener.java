@@ -48,7 +48,6 @@ public class LocalHistoryDocumentListener implements DocumentListener {
         Document document = event.getDocument();
         PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document);
 
-
         if (psiFile != null) {
             // 取消之前的计时器任务，避免频繁保存
             resetSaveTimer();
@@ -90,7 +89,7 @@ public class LocalHistoryDocumentListener implements DocumentListener {
             VirtualFile file = FileEditorManager.getInstance(project).getSelectedFiles()[0];
             String fileName = file.getNameWithoutExtension();
 
-            // 定义保存的路径（如：项目根目录下的一个 txt 文件）
+            // 定义保存的路径
             String historyDirPath = project.getBasePath() + "/.history";
             String filePath = historyDirPath + "/" + fileName + "_record_" + timestamp + ".txt";
 
