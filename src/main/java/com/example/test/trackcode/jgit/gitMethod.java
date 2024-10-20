@@ -12,14 +12,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.ProjectManager;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.RefSpec;
@@ -453,7 +453,8 @@ public class gitMethod {
         String content = ""; // 空内容的 base64 编码结果是空字符串
 
         // 请求体，包含提交的文件路径、内容、提交消息和目标分支
-        String jsonPayload = String.format("{\"message\": \"%s\", \"content\": \"%s\", \"branch\": \"%s\"}", message, content, "Version");
+        String jsonPayload = String.format("{\"message\": \"%s\", \"content\": \"%s\", \"branch\": \"%s\"}",
+                message, content, "Version");
         conn.setDoOutput(true);
         try (OutputStream os = conn.getOutputStream()) {
             os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
@@ -659,17 +660,21 @@ public class gitMethod {
     public static void commitAndPushChanges() throws IOException {
         String projectBasePath = ProjectManager.getInstance().getOpenProjects()[0].getBasePath();
         File localRepoPath = new File(projectBasePath);
-        String username=PersistentStorage.getInstance().getUsername();
-        String token=PersistentStorage.getInstance().getToken();
-        Git git=Git.open(localRepoPath);
+        String username = PersistentStorage.getInstance().getUsername();
+        String token = PersistentStorage.getInstance().getToken();
+        Git git = Git.open(localRepoPath);
+
         try {
-            // 添加所有更改文件
+            // 保存所有文档，确保没有未保存的更改
+            FileDocumentManager.getInstance().saveAllDocuments();
+
+            // 强制重置暂存区并重新添加文件
+            git.reset().setMode(ResetCommand.ResetType.MIXED).call();
             git.add().addFilepattern(".").call();
             System.out.println("All changes added to the staging area.");
 
-            // 提交更改
-            git.commit().setMessage("update").call();
-            //System.out.println("Changes committed with message: " + commitMessage);
+            // 提交更改，使用唯一的提交信息避免合并
+            git.commit().setMessage("Update at " + System.currentTimeMillis()).call();
 
             // 推送到远程 main 分支
             UsernamePasswordCredentialsProvider credentialsProvider =
@@ -677,7 +682,7 @@ public class gitMethod {
             git.push()
                     .setRemote("origin")
                     .setCredentialsProvider(credentialsProvider)
-                    .setRefSpecs(new RefSpec("refs/heads/main:refs/heads/main")) // 推送到 main 分支
+                    .setForce(true)  // 强制推送
                     .call();
             System.out.println("Changes pushed to the remote main branch.");
 
@@ -686,6 +691,8 @@ public class gitMethod {
             System.err.println("Failed to commit or push changes.");
         }
     }
+
+
 
     public static JsonArray getFilesFromGitHub(String apiUrl, String token) throws IOException {
         HttpURLConnection connection = createConnection(apiUrl, "GET", token);
