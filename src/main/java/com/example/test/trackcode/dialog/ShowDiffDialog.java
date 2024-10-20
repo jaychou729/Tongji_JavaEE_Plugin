@@ -157,7 +157,7 @@ public class ShowDiffDialog extends DialogWrapper {
 
 
         panel2.add(vensionCodePanel,BorderLayout.CENTER);
-        panel2.setPreferredSize(new Dimension(600,500));
+        panel2.setPreferredSize(new Dimension(500,500));
         backgroundPanel.add(panel2,gbc);
 
 
@@ -199,6 +199,7 @@ public class ShowDiffDialog extends DialogWrapper {
 
 
         panel3.add(curCodePanel,BorderLayout.CENTER);
+        panel3.setPreferredSize(new Dimension(500,500));
         backgroundPanel.add(panel3,gbc);
 
 
@@ -292,7 +293,7 @@ public class ShowDiffDialog extends DialogWrapper {
                 try {
                     // 获取每行的起始和结束偏移量
                     int start = textArea.getLineStartOffset(line);  // 获取行的开始偏移量
-                    int end = textArea.getLineStartOffset(line+1);      // 获取行的结束偏移量
+                    int end = textArea.getLineEndOffset(line);      // 获取行的结束偏移量
 
                     // 为指定行添加高亮
                     versionHighlighter.addHighlight(start, end, orangePainter);
@@ -304,7 +305,7 @@ public class ShowDiffDialog extends DialogWrapper {
                 try {
                     // 获取每行的起始和结束偏移量
                     int start = textArea.getLineStartOffset(line);  // 获取行的开始偏移量
-                    int end = textArea.getLineStartOffset(line+1);      // 获取行的结束偏移量
+                    int end = textArea.getLineEndOffset(line);      // 获取行的结束偏移量
 
                     // 为指定行添加高亮
                     versionHighlighter.addHighlight(start, end, orangePainter);
@@ -316,7 +317,7 @@ public class ShowDiffDialog extends DialogWrapper {
                 try {
                     // 获取每行的起始和结束偏移量
                     int start = textArea2.getLineStartOffset(line);  // 获取行的开始偏移量
-                    int end = textArea2.getLineStartOffset(line+1);      // 获取行的结束偏移量
+                    int end = textArea2.getLineEndOffset(line);      // 获取行的结束偏移量
 
                     // 为指定行添加高亮
                     curHighlighter.addHighlight(start, end, bluePainter);
@@ -328,7 +329,7 @@ public class ShowDiffDialog extends DialogWrapper {
                 try {
                     // 获取每行的起始和结束偏移量
                     int start = textArea2.getLineStartOffset(line);  // 获取行的开始偏移量
-                    int end = textArea2.getLineStartOffset(line+1);      // 获取行的结束偏移量
+                    int end = textArea2.getLineEndOffset(line);      // 获取行的结束偏移量
 
                     // 为指定行添加高亮
                     curHighlighter.addHighlight(start, end, bluePainter);
